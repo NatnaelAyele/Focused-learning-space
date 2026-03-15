@@ -21,7 +21,7 @@ class Playlist(Base):
     user_id = Column(Integer, ForeignKey("users.id"))
     name = Column(String, nullable=False)
     category = Column(String)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=datetime.now(timezone.utc))
 
     user = relationship("User", back_populates="playlists")
     videos = relationship("PlaylistVideo", back_populates="playlist")
@@ -40,7 +40,7 @@ class PlaylistVideo(Base):
     title = Column(String)
     channel = Column(String)
     thumbnail = Column(String)
-    added_at = Column(DateTime, default=datetime.utcnow)
+    added_at = Column(DateTime, default=datetime.now(timezone.utc))
 
     playlist = relationship("Playlist", back_populates="videos")
 
@@ -59,7 +59,7 @@ class PlaylistRepo(Base):
     repo_url = Column(String)
     description = Column(String)
     stars = Column(Integer)
-    added_at = Column(DateTime, default=datetime.utcnow)
+    added_at = Column(DateTime, default=datetime.now(timezone.utc))
 
     playlist = relationship("Playlist", back_populates="repos")
 
