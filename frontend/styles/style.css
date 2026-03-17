@@ -167,3 +167,142 @@ button {
     transform: translateY(-2px);
     box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
 }
+
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.75);
+    backdrop-filter: blur(4px); 
+    z-index: 1000;
+    
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-content {
+    background: #1e293b;
+    color: #f8fafc;
+    width: 100%;
+    max-width: 360px;
+    padding: 30px;
+    border-radius: 12px;
+    border: 1px solid #334155;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+    position: relative;
+}
+
+.close {
+    position: absolute;
+    top: 15px;
+    right: 20px;
+    font-size: 24px;
+    color: #94a3b8;
+    cursor: pointer;
+    transition: color 0.2s;
+}
+
+.close:hover {
+    color: white;
+}
+
+#login-form, 
+#register-form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.modal-content h3 {
+    margin-bottom: 5px;
+    font-size: 22px;
+}
+
+.modal-content input {
+    width: 100%;
+    padding: 12px 15px;
+    border: 1px solid #334155;
+    background: #0f172a;
+    color: white;
+    border-radius: 6px;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.modal-content input:focus {
+    border-color: #3b82f6;
+}
+
+.modal-content button {
+    padding: 12px;
+    background: #3b82f6;
+    margin-top: 10px;
+    border: none;
+    color: white;
+    border-radius: 6px;
+    font-size: 16px;
+    font-weight: bold;
+}
+
+.modal-content button:hover {
+    background: #2563eb;
+}
+
+
+.result-item a {
+    color: #60a5fa;
+    text-decoration: none;
+    font-weight: bold;
+    transition: color 0.2s;
+}
+
+.result-item a:hover {
+    color: #93c5fd;
+    text-decoration: underline;
+}
+
+.video-card {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+}
+
+.video-card img {
+    width: 200px;
+    height: 112px;
+    object-fit: cover;
+    border-radius: 6px;
+    border: 1px solid #334155;
+}
+
+.video-card h4 {
+    margin-bottom: 5px;
+    font-size: 18px;
+}
+
+.video-card .channel {
+    color: #94a3b8;
+    font-size: 14px;
+}
+
+
+.repo-card h4 {
+    font-size: 20px;
+    margin-bottom: 8px;
+}
+
+.repo-card .repo-meta {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 10px;
+    font-size: 14px;
+    color: #cbd5e1;
+}
+
+.repo-card .description {
+    color: #94a3b8;
+    font-size: 15px;
+}
