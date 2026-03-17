@@ -62,3 +62,108 @@ button {
 .navbar .primary:hover {
     background: #2563eb;
 }
+
+
+.hero {
+    text-align: center;
+    margin-top: 100px;
+    padding: 0 20px;
+}
+
+.hero h1 {
+    font-size: 48px;
+    margin-bottom: 10px;
+}
+
+.hero p {
+    color: #94a3b8;
+    font-size: 18px;
+    margin-bottom: 30px;
+}
+
+.search-box {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+.search-box input {
+    flex: 1;
+    padding: 14px 20px;
+    border-radius: 8px;
+    border: 1px solid #334155;
+    background: #1e293b;
+    color: white;
+    font-size: 16px;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.search-box input:focus {
+    border-color: #3b82f6;
+}
+
+.search-box button {
+    padding: 14px 24px;
+    background: #3b82f6;
+    border: none;
+    border-radius: 8px;
+    color: white;
+    font-size: 16px;
+    font-weight: bold;
+}
+
+.search-box button:hover {
+    background: #2563eb;
+}
+
+.tabs {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 60px;
+    margin-bottom: 30px;
+}
+
+.tabs button {
+    background: #1e293b;
+    border: 1px solid #334155;
+    padding: 10px 24px;
+    border-radius: 20px;
+    color: #94a3b8;
+    font-weight: 500;
+}
+
+.tabs button:hover {
+    background: #334155;
+    color: white;
+}
+
+.tabs .active {
+    background: #3b82f6;
+    color: white;
+    border-color: #3b82f6;
+}
+
+#videos-container,
+#repos-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 0 20px 50px 20px;
+}
+
+.result-item {
+    background: #1e293b;
+    border: 1px solid #334155;
+    padding: 20px;
+    margin: 15px 0;
+    border-radius: 12px;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.result-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+}
