@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Focus Learning</title>
+    <link rel="stylesheet" href="styles/style.css">
 </head>
 <body>
 
@@ -17,7 +18,7 @@
 
     <section class="hero">
         <h1>Learn without distraction</h1>
-        <p>Search videos and code. Stay focused.</p>
+        <p>Search videos and code. Stay focused. Build real skills.</p>
 
         <div class="search-box">
             <input id="search-input" placeholder="Search a topic...">
@@ -25,10 +26,40 @@
         </div>
     </section>
 
+    <section id="results-section" class="hidden">
 
+        <div class="tabs">
+            <button id="tab-videos" class="active" onclick="switchTab('videos')">Videos</button>
+            <button id="tab-repos" onclick="switchTab('repos')">Repositories</button>
+        </div>
 
+        <div id="videos-container">
+            </div>
+        <div id="repos-container" class="hidden"></div>
 
+    </section>
 
- 
+    <div id="auth-modal" class="modal hidden">
+        <div class="modal-content">
+            <span class="close" onclick="closeAuth()">&times;</span>
+
+            <div id="login-form">
+                <h3>Login</h3>
+                <input placeholder="Username">
+                <input type="password" placeholder="Password">
+                <button>Login</button>
+            </div>
+
+            <div id="register-form" class="hidden">
+                <h3>Register</h3>
+                <input placeholder="Username">
+                <input placeholder="Email">
+                <input type="password" placeholder="Password">
+                <button>Create account</button>
+            </div>
+        </div>
+    </div>
+
+    
 </body>
 </html>
