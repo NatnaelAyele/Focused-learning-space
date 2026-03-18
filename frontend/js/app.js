@@ -1,33 +1,115 @@
-const API_URL = "http://localhost:8000";
+const API_BASE_URL = "http://localhost:8000";
+
+
+let allVideos = [];
+let allRepos = [];
+let currentPage = 1;
+const itemsPerPage = 10;
+let activeTab = 'videos';
+
 async function handleSearch() {
     const query = document.getElementById("search-input").value;
+    if (!query) return;
+
+    document.getElementById("results-section").classList.remove("hidden");
+    document.getElementById("pagination-controls").classList.add("hidden"); // Hide until loaded
     
-    if (query === "") {
+    document.getElementById("videos-container").innerHTML = "<p>Loading videos...</p>";
+    document.getElementById("repos-container").innerHTML = "<p>Loading repositories...</p>";
+
+    try {
+        const [videoRes, repoRes] = await Promise.all([
+            fetch(`${API_BASE_URL}/search/videos?query=${encodeURIComponent(query)}`),
+            fetch(`${API_BASE_URL}/search/repositories?query=${encodeURIComponent(query)}`)
+        ]);
+
+        const videoData = await videoRes.json();
+        const repoData = await repoRes.json();
+
+        allVideos = videoData.videos || [];
+        allRepos = repoData.repositories || [];
+        currentPage = 1;
+
+        renderCurrentPage();
+
+    } catch (error) {
+        console.error("Error:", error);
+        document.getElementById("videos-container").innerHTML = "<p>Failed to load results.</p>";
+        document.getElementById("repos-container").innerHTML = "<p>Failed to load results.</p>";
+
+    }
+}
+
+function renderCurrentPage() {
+
+    const dataArray = activeTab === 'videos' ? allVideos : allRepos;
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    const paginatedData = dataArray.slice(startIndex, endIndex);
+
+    if (activeTab === 'videos') {
+        renderVideoResults(paginatedData);
+    } else {
+        renderRepoResults(paginatedData);
+    }
+
+    updatePaginationUI(dataArray.length);
+}
+
+function changePage(direction) {
+    currentPage += direction;
+    renderCurrentPage();
+    document.getElementById("results-section").scrollIntoView({ behavior: 'smooth' });
+}
+
+function updatePaginationUI(totalItems) {
+    const totalPages = Math.ceil(totalItems / itemsPerPage);
+    const pageInfo = document.getElementById("page-info");
+    const previousBtn = document.getElementById("prev-btn");
+    const nextBtn = document.getElementById("next-btn");
+    const paginationControls = document.getElementById("pagination-controls");
+
+    if (totalItems === 0) {
+        paginationControls.classList.add("hidden");
         return;
     }
 
-    const videoContainer = document.getElementById("videos-container");
-    const repoContainer = document.getElementById("repos-container");
-    const resultsSection = document.getElementById("results-section");
-    resultsSection.classList.remove("hidden");
-    videoContainer.innerHTML = "<p>Loading videos...</p>";
-    repoContainer.innerHTML = "<p>Loading repositories...</p>";
+    paginationControls.classList.remove("hidden");
+    pageInfo.innerText = `Page ${currentPage} of ${totalPages}`;
+    previousBtn.disabled = currentPage === 1;
+    previousBtn.style.opacity = currentPage === 1 ? "0.5" : "1";
+    previousBtn.style.cursor = currentPage === 1 ? "not-allowed" : "pointer";
 
-    try {
-        const videoResponse = await fetch(API_URL + "/search/videos?query=" + encodeURIComponent(query));
-        const videoData = await videoResponse.json();
-        const repoResponse = await fetch(API_URL + "/search/repositories?query=" + encodeURIComponent(query));
-        const repoData = await repoResponse.json();
-
-        renderVideoResults(videoData.videos);
-        renderRepoResults(repoData.repositories);
-
-    } catch (error) {
-        console.error("Search failed:", error);
-        videoContainer.innerHTML = "<p>There was an error loading results.</p>";
-        repoContainer.innerHTML = "";
-    }
+    nextBtn.disabled = currentPage === totalPages;
+    nextBtn.style.opacity = currentPage === totalPages ? "0.5" : "1";
+    nextBtn.style.cursor = currentPage === totalPages ? "not-allowed" : "pointer";
 }
+
+function switchTab(tab) {
+    activeTab = tab;
+    currentPage = 1;
+    
+    const videos = document.getElementById("videos-container");
+    const repos = document.getElementById("repos-container");
+    const videosTab = document.getElementById("tab-videos");
+    const reposTab = document.getElementById("tab-repos");
+
+    if (tab === "videos") {
+        videos.classList.remove("hidden");
+        repos.classList.add("hidden");
+        videosTab.classList.add("active");
+        reposTab.classList.remove("active");
+    } else {
+        repos.classList.remove("hidden");
+        videos.classList.add("hidden");
+        reposTab.classList.add("active");
+        videosTab.classList.remove("active");
+    }
+
+    renderCurrentPage();
+}
+
+
 
 function renderVideoResults(videos) {
     const container = document.getElementById("videos-container");
@@ -87,24 +169,6 @@ function renderRepoResults(repos) {
     }
 }
 
-function switchTab(tabName) {
-    const videoView = document.getElementById("videos-container");
-    const repoView = document.getElementById("repos-container");
-    const videoTab = document.getElementById("tab-videos");
-    const repoTab = document.getElementById("tab-repos");
-
-    if (tabName === "videos") {
-        videoView.classList.remove("hidden");
-        repoView.classList.add("hidden");
-        videoTab.classList.add("active");
-        repoTab.classList.remove("active");
-    } else {
-        videoView.classList.add("hidden");
-        repoView.classList.remove("hidden");
-        videoTab.classList.remove("active");
-        repoTab.classList.add("active");
-    }
-}
 
 function openAuth(type) {
     const modal = document.getElementById("auth-modal");

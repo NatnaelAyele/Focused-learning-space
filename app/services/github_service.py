@@ -15,7 +15,7 @@ def search_github_repositories(query):
         "q": query,
         "sort": "stars",
         "order": "desc",
-        "per_page": 50
+        "per_page": 100
     }
     
     response = requests.get(github_search_url, params=parameters, headers=headers)

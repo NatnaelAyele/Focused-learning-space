@@ -36,7 +36,11 @@
         <div id="videos-container">
             </div>
         <div id="repos-container" class="hidden"></div>
-
+        <div id="pagination-controls" class="hidden" style="text-align: center; margin-top: 20px; padding-bottom: 40px;">
+            <button id="prev-btn" onclick="changePage(-1)" style="padding: 8px 16px; margin: 5px; background: #334155; border: none; color: white; border-radius: 4px;">Previous</button>
+            <span id="page-info" style="margin: 0 15px; font-weight: bold;">Page 1</span>
+            <button id="next-btn" onclick="changePage(1)" style="padding: 8px 16px; margin: 5px; background: #3b82f6; border: none; color: white; border-radius: 4px;">Next</button>
+        </div>
     </section>
 
     <div id="auth-modal" class="modal hidden">
