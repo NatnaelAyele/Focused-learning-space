@@ -11,7 +11,7 @@ def search_youtube(query):
         "part": "snippet",
         "q": query,
         "key": youtube_api_key,
-        "maxResults": 20,
+        "maxResults": 50,
         "type": "video"}
     
     response = requests.get(youtube_search_url, params=paramaters)
