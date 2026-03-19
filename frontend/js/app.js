@@ -1,6 +1,5 @@
 const API_BASE_URL = "http://localhost:8000";
 
-
 let allVideos = [];
 let allRepos = [];
 let currentPage = 1;
@@ -9,40 +8,61 @@ let activeTab = 'videos';
 
 async function handleSearch() {
     const query = document.getElementById("search-input").value;
-    if (!query) return;
+    if (query === "") {
+        return;
+    }
 
     document.getElementById("results-section").classList.remove("hidden");
-    document.getElementById("pagination-controls").classList.add("hidden"); // Hide until loaded
+    document.getElementById("pagination-controls").classList.add("hidden"); 
     
     document.getElementById("videos-container").innerHTML = "<p>Loading videos...</p>";
     document.getElementById("repos-container").innerHTML = "<p>Loading repositories...</p>";
 
     try {
         const [videoRes, repoRes] = await Promise.all([
-            fetch(`${API_BASE_URL}/search/videos?query=${encodeURIComponent(query)}`),
-            fetch(`${API_BASE_URL}/search/repositories?query=${encodeURIComponent(query)}`)
+            fetch(API_BASE_URL + "/search/videos?query=" + encodeURIComponent(query)),
+            fetch(API_BASE_URL + "/search/repositories?query=" + encodeURIComponent(query))
         ]);
 
         const videoData = await videoRes.json();
         const repoData = await repoRes.json();
 
-        allVideos = videoData.videos || [];
-        allRepos = repoData.repositories || [];
-        currentPage = 1;
+        if (videoData.videos) {
+            allVideos = videoData.videos;
+        } else {
+            allVideos = [];
+        }
 
+        if (repoData.repositories) {
+            allRepos = repoData.repositories;
+        } else {
+            allRepos = [];
+        }
+        for (let i = 0; i < allVideos.length; i++) {
+            console.log(allVideos[i]);
+        }
+    
+        currentPage = 1;
+        updateSortOptions();
+        applySort();
         renderCurrentPage();
 
     } catch (error) {
         console.error("Error:", error);
         document.getElementById("videos-container").innerHTML = "<p>Failed to load results.</p>";
         document.getElementById("repos-container").innerHTML = "<p>Failed to load results.</p>";
-
     }
 }
 
 function renderCurrentPage() {
+    let dataArray = [];
+    
+    if (activeTab === 'videos') {
+        dataArray = allVideos;
+    } else {
+        dataArray = allRepos;
+    }
 
-    const dataArray = activeTab === 'videos' ? allVideos : allRepos;
     const startIndex = (currentPage - 1) * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
     const paginatedData = dataArray.slice(startIndex, endIndex);
@@ -57,7 +77,7 @@ function renderCurrentPage() {
 }
 
 function changePage(direction) {
-    currentPage += direction;
+    currentPage = currentPage + direction;
     renderCurrentPage();
     document.getElementById("results-section").scrollIntoView({ behavior: 'smooth' });
 }
@@ -75,67 +95,92 @@ function updatePaginationUI(totalItems) {
     }
 
     paginationControls.classList.remove("hidden");
-    pageInfo.innerText = `Page ${currentPage} of ${totalPages}`;
-    previousBtn.disabled = currentPage === 1;
-    previousBtn.style.opacity = currentPage === 1 ? "0.5" : "1";
-    previousBtn.style.cursor = currentPage === 1 ? "not-allowed" : "pointer";
+    pageInfo.innerText = "Page " + currentPage + " of " + totalPages;
 
-    nextBtn.disabled = currentPage === totalPages;
-    nextBtn.style.opacity = currentPage === totalPages ? "0.5" : "1";
-    nextBtn.style.cursor = currentPage === totalPages ? "not-allowed" : "pointer";
+    if (currentPage === 1) {
+        previousBtn.disabled = true;
+        previousBtn.style.opacity = "0.5";
+        previousBtn.style.cursor = "not-allowed";
+    } else {
+        previousBtn.disabled = false;
+        previousBtn.style.opacity = "1";
+        previousBtn.style.cursor = "pointer";
+    }
+
+    if (currentPage === totalPages) {
+        nextBtn.disabled = true;
+        nextBtn.style.opacity = "0.5";
+        nextBtn.style.cursor = "not-allowed";
+    } else {
+        nextBtn.disabled = false;
+        nextBtn.style.opacity = "1";
+        nextBtn.style.cursor = "pointer";
+    }
 }
 
 function switchTab(tab) {
     activeTab = tab;
     currentPage = 1;
     
-    const videos = document.getElementById("videos-container");
-    const repos = document.getElementById("repos-container");
-    const videosTab = document.getElementById("tab-videos");
-    const reposTab = document.getElementById("tab-repos");
+    const videosContainer = document.getElementById("videos-container");
+    const reposContainer = document.getElementById("repos-container");
+    const videosTabBtn = document.getElementById("tab-videos");
+    const reposTabBtn = document.getElementById("tab-repos");
 
     if (tab === "videos") {
-        videos.classList.remove("hidden");
-        repos.classList.add("hidden");
-        videosTab.classList.add("active");
-        reposTab.classList.remove("active");
+        videosContainer.classList.remove("hidden");
+        reposContainer.classList.add("hidden");
+        videosTabBtn.classList.add("active");
+        reposTabBtn.classList.remove("active");
     } else {
-        repos.classList.remove("hidden");
-        videos.classList.add("hidden");
-        reposTab.classList.add("active");
-        videosTab.classList.remove("active");
+        reposContainer.classList.remove("hidden");
+        videosContainer.classList.add("hidden");
+        reposTabBtn.classList.add("active");
+        videosTabBtn.classList.remove("active");
     }
 
+    updateSortOptions();
     renderCurrentPage();
 }
 
+function formatViews(num) {
+    if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
+    if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
+    return num;
+}
 
+function renderVideoResults(videoArray) {
+    let videosContainer = document.getElementById("videos-container");
+    videosContainer.innerHTML = "";
 
-function renderVideoResults(videos) {
-    const container = document.getElementById("videos-container");
-    container.innerHTML = "";
-
-    if (!videos || videos.length === 0) {
-        container.innerHTML = "<p>No videos found.</p>";
+    if (videoArray.length === 0) {
+        videosContainer.innerHTML = "<p>No videos found.</p>";
         return;
     }
 
-    for (let i = 0; i < videos.length; i++) {
-        const video = videos[i];
-        const videoUrl = "https://www.youtube.com/watch?v=" + video.video_id;
+    for (let i = 0; i < videoArray.length; i++) {
+        let video = videoArray[i];
+        let link = "https://www.youtube.com/watch?v=" + video.video_id;
+        
+        let dateOptions = { year: 'numeric', month: 'short', day: 'numeric' };
+        let formattedDate = new Date(video.date).toLocaleDateString(undefined, dateOptions);
 
-        const html = `
+        let videoElement = `
             <div class="result-item video-card">
-                <a href="${videoUrl}" target="_blank">
+                <a href="${link}" target="_blank">
                     <img src="${video.thumbnail}" alt="${video.title}">
                 </a>
                 <div class="info">
-                    <h4><a href="${videoUrl}" target="_blank">${video.title}</a></h4>
+                    <h4><a href="${link}" target="_blank">${video.title}</a></h4>
                     <p class="channel">${video.channel}</p>
+                    <p class="video-meta">
+                        <span>👁️ ${formatViews(video.views)} views</span> • 
+                        <span>📅 ${formattedDate}</span>
+                    </p>
                 </div>
             </div>`;
             
-        container.innerHTML += html;
+        videosContainer.innerHTML += videoElement;
     }
 }
 
@@ -143,15 +188,27 @@ function renderRepoResults(repos) {
     const container = document.getElementById("repos-container");
     container.innerHTML = "";
 
-    if (!repos || repos.length === 0) {
+    if (repos.length === 0) {
         container.innerHTML = "<p>No repositories found.</p>";
         return;
     }
+
     const githubSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-github" viewBox="0 0 16 16">
         <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8"/>
     </svg>`;
+
+    const gitForkSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-git" viewBox="0 0 16 16">
+        <path d="M15.698 7.287 8.712.302a1.03 1.03 0 0 0-1.457 0l-1.45 1.45 1.84 1.84a1.223 1.223 0 0 1 1.55 1.56l1.773 1.774a1.224 1.224 0 0 1 1.267 2.025 1.226 1.226 0 0 1-2.002-1.334L8.58 5.963v4.353a1.226 1.226 0 1 1-1.008-.036V5.887a1.226 1.226 0 0 1-.666-1.608L5.093 2.465l-4.79 4.79a1.03 1.03 0 0 0 0 1.457l6.986 6.986a1.03 1.03 0 0 0 1.457 0l6.953-6.953a1.03 1.03 0 0 0 0-1.457"/>
+        </svg>`;
+
     for (let i = 0; i < repos.length; i++) {
         const repo = repos[i];
+        
+        let description = repo.description;
+        if (!description) {
+            description = "No description.";
+        }
+
         const html = `
             <div class="result-item repo-card">
                 <div class="repo-title-wrapper">
@@ -161,14 +218,15 @@ function renderRepoResults(repos) {
                 <div class="repo-meta">
                     <span>👤 ${repo.owner}</span>
                     <span>⭐ ${repo.stars}</span>
+                    <span> ${gitForkSvg} Forks: ${repo.forks}</span>
+                    <span>🕒 Updated: ${new Date(repo.updated).toLocaleDateString()}</span>
                 </div>
-                <p>${repo.description || "No description."}</p>
+                <p>${description}</p>
             </div>`;
             
         container.innerHTML += html;
     }
 }
-
 
 function openAuth(type) {
     const modal = document.getElementById("auth-modal");
@@ -195,4 +253,118 @@ window.onclick = function(event) {
 
 function closeAuth() {
     document.getElementById("auth-modal").classList.add("hidden");
+}
+
+function updateSortOptions() {
+    let sortSelect = document.getElementById("sort-select");
+    if (activeTab === 'videos') {
+        sortSelect.innerHTML = `
+            <option value="views-desc">Views ↓(High to Low)</option>
+            <option value="views-asc">Views ↑(Low to High)</option>
+            <option value="date-desc">Newest First</option>
+            <option value="date-asc">Oldest First</option>
+        `;
+    } else {
+        sortSelect.innerHTML = `
+            <option value="stars-desc">Stars ↓(High to Low)</option>
+            <option value="stars-asc">Stars ↑(Low to High)</option>
+            <option value="forks-desc">Forks ↓(High to Low)</option>
+            <option value="forks-asc">Forks ↑(Low to High)</option>
+            <option value="updated-desc">Recently Updated</option>
+            <option value="updated-asc">Least Recently Updated</option>
+        `;
+    }
+}
+
+function applySort() {
+    let sortSelect = document.getElementById("sort-select");
+    let sortValue = sortSelect.value;
+    
+    let splitValue = sortValue.split("-");
+    let key = splitValue[0];
+    let order = splitValue[1];
+
+    if (activeTab === 'videos') {
+        allVideos.sort(function(a, b) {
+            let valA;
+            let valB;
+
+            if (key === 'date') {
+                if (a.date) {
+                    valA = new Date(a.date).getTime();
+                } else {
+                    valA = new Date(0).getTime();
+                }
+            } else {
+                if (a.views) {
+                    valA = Number(a.views);
+                } else {
+                    valA = 0;
+                }
+            }
+
+            if (key === 'date') {
+                if (b.date) {
+                    valB = new Date(b.date).getTime();
+                } else {
+                    valB = new Date(0).getTime();
+                }
+            } else {
+                if (b.views) {
+                    valB = Number(b.views);
+                } else {
+                    valB = 0;
+                }
+            }
+            
+            if (order === 'desc') {
+                return valB - valA;
+            } else {
+                return valA - valB;
+            }
+        });
+    } else {
+
+        allRepos.sort(function(a, b) {
+            let valA;
+            let valB;
+
+            if (key === 'updated') {
+                if (a.updated) {
+                    valA = new Date(a.updated).getTime();
+                } else {
+                    valA = new Date(0).getTime();
+                }
+            } else {
+                if (a[key]) {
+                    valA = Number(a[key]);
+                } else {
+                    valA = 0;
+                }
+            }
+
+            if (key === 'updated') {
+                if (b.updated) {
+                    valB = new Date(b.updated).getTime();
+                } else {
+                    valB = new Date(0).getTime();
+                }
+            } else {
+                if (b[key]) {
+                    valB = Number(b[key]);
+                } else {
+                    valB = 0;
+                }
+            }
+            
+            if (order === 'desc') {
+                return valB - valA;
+            } else {
+                return valA - valB;
+            }
+        });
+    }
+
+    pageNumber = 1; 
+    renderCurrentPage();
 }
