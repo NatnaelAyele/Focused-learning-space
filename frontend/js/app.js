@@ -8,15 +8,17 @@ let activeTab = 'videos';
 
 async function handleSearch() {
     const query = document.getElementById("search-input").value;
-    if (query === "") {
-        return;
-    }
+    if (query === "") return;
+    allVideos = [];
+    allRepos = [];
+    currentPage = 1;
 
     document.getElementById("results-section").classList.remove("hidden");
     document.getElementById("pagination-controls").classList.add("hidden"); 
-    
-    document.getElementById("videos-container").innerHTML = "<p>Loading videos...</p>";
-    document.getElementById("repos-container").innerHTML = "<p>Loading repositories...</p>";
+    document.getElementById("sort-select").classList.add("hidden");
+
+    document.getElementById("videos-container").innerHTML = "<p class='loading-text'>Loading videos...</p>";
+    document.getElementById("repos-container").innerHTML = "<p class='loading-text'>Loading repositories...</p>";
 
     try {
         const [videoRes, repoRes] = await Promise.all([
@@ -27,24 +29,13 @@ async function handleSearch() {
         const videoData = await videoRes.json();
         const repoData = await repoRes.json();
 
-        if (videoData.videos) {
-            allVideos = videoData.videos;
-        } else {
-            allVideos = [];
-        }
-
-        if (repoData.repositories) {
-            allRepos = repoData.repositories;
-        } else {
-            allRepos = [];
-        }
-        for (let i = 0; i < allVideos.length; i++) {
-            console.log(allVideos[i]);
-        }
+        allVideos = videoData.videos || [];
+        allRepos = repoData.repositories || [];
     
-        currentPage = 1;
         updateSortOptions();
         applySort();
+        
+        document.getElementById("sort-select").classList.remove("hidden");
         renderCurrentPage();
 
     } catch (error) {
@@ -55,12 +46,24 @@ async function handleSearch() {
 }
 
 function renderCurrentPage() {
-    let dataArray = [];
-    
+    let dataArray;
+    let containerId;
+
     if (activeTab === 'videos') {
         dataArray = allVideos;
+        containerId = "videos-container";
     } else {
         dataArray = allRepos;
+        containerId = "repos-container";
+    }
+
+    let container = document.getElementById(containerId);
+    if (dataArray.length === 0) {
+        if (!container.innerHTML.includes("Loading")) {
+            container.innerHTML = `<p>No ${activeTab} found.</p>`;
+            document.getElementById("pagination-controls").classList.add("hidden");
+        }
+        return;
     }
 
     const startIndex = (currentPage - 1) * itemsPerPage;
@@ -160,18 +163,17 @@ function renderVideoResults(videoArray) {
 
     for (let i = 0; i < videoArray.length; i++) {
         let video = videoArray[i];
-        let link = "https://www.youtube.com/watch?v=" + video.video_id;
+        
         
         let dateOptions = { year: 'numeric', month: 'short', day: 'numeric' };
         let formattedDate = new Date(video.date).toLocaleDateString(undefined, dateOptions);
 
         let videoElement = `
-            <div class="result-item video-card">
-                <a href="${link}" target="_blank">
-                    <img src="${video.thumbnail}" alt="${video.title}">
-                </a>
+            <div class="result-item video-card" onclick="openVideo('${video.video_id}')" style="cursor:pointer;">
+                <img src="${video.thumbnail}" alt="${video.title}">
+
                 <div class="info">
-                    <h4><a href="${link}" target="_blank">${video.title}</a></h4>
+                    <h4>${video.title}</h4>
                     <p class="channel">${video.channel}</p>
                     <p class="video-meta">
                         <span>👁️ ${formatViews(video.views)} views</span> • 
@@ -234,6 +236,7 @@ function openAuth(type) {
     const registerForm = document.getElementById("register-form");
 
     modal.classList.remove("hidden");
+    modal.classList.add("show");
 
     if (type === "login") {
         loginForm.classList.remove("hidden");
@@ -252,7 +255,11 @@ window.onclick = function(event) {
 };
 
 function closeAuth() {
-    document.getElementById("auth-modal").classList.add("hidden");
+    const modal = document.getElementById("auth-modal");
+    modal.classList.remove("show");
+    setTimeout(() => {
+        modal.classList.add("hidden");
+    }, 300);
 }
 
 function updateSortOptions() {
@@ -365,6 +372,39 @@ function applySort() {
         });
     }
 
-    pageNumber = 1; 
+    currentPage = 1; 
     renderCurrentPage();
 }
+
+function openVideo(videoId) {
+    const modal = document.getElementById("video-modal");
+    const player = document.getElementById("video-player");
+    
+    player.src = `https://www.youtube.com/embed/${videoId}?autoplay=1`;
+    modal.classList.add("show");
+    document.body.style.overflow = 'hidden'; 
+}
+
+function closeVideo() {
+    const modal = document.getElementById("video-modal");
+    const player = document.getElementById("video-player");
+    modal.classList.remove("show");
+    
+    setTimeout(() => {
+        player.src = ""; 
+        document.body.style.overflow = 'auto';
+    }, 300);
+}
+
+window.addEventListener('click', function(event) {
+    const modal = document.getElementById("video-modal");
+    if (event.target === modal) {
+        closeVideo();
+    }
+});
+
+window.addEventListener('keydown', function(event) {
+    if (event.key === 'Escape') {
+        closeVideo();
+    }
+});

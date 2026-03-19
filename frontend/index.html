@@ -33,7 +33,7 @@
             <button id="tab-repos" onclick="switchTab('repos')">Repositories</button>
         </div>
             
-            <select id="sort-select" onchange="applySort()"></select>
+            <select id="sort-select" class="hidden" onchange="applySort()"></select>
             </div>
 
         <div id="videos-container">
@@ -66,6 +66,14 @@
             </div>
         </div>
     </div>
+
+<div id="video-modal" class="modal">
+    <span class="close-video" onclick="closeVideo()">&times;</span>
+    
+    <div class="video-container">
+        <iframe id="video-player" src="" frameborder="0" allowfullscreen></iframe>
+    </div>
+</div>
 
     <script src="js/app.js"></script>
 </body>
