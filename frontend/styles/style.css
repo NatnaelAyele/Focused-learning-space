@@ -306,3 +306,51 @@ button {
     color: #94a3b8;
     font-size: 15px;
 }
+
+.video-meta {
+    color: #94a3b8;
+    font-size: 14px;
+    margin-top: 5px;
+    display: flex;
+    gap: 10px;
+}
+
+.video-meta span {
+    background: #0f172a;
+    padding: 2px 8px;
+    border-radius: 4px;
+}
+
+.controls-wrapper {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 800px;
+    margin: 40px auto 20px;
+    padding: 0 20px;
+}
+
+#sort-select {
+    background: #1e293b;
+    color: #f8fafc;
+    padding: 8px 12px;
+    border: 1px solid #334155;
+    border-radius: 6px;
+    cursor: pointer;
+    font-family: inherit;
+    outline: none;
+    margin-left: 680px;
+}
+
+#sort-select:hover, #sort-select:focus {
+    border-color: #3b82f6;
+}
+
+#previous-btn, #next-btn {
+padding: 8px 16px;
+margin: 5px; 
+background: #3b82f6; 
+border: none; 
+color: white;
+border-radius: 4px;
+}
