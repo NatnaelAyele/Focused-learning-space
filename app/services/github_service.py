@@ -28,6 +28,8 @@ def search_github_repositories(query):
             "name": item["name"],
             "owner": item["owner"]["login"],
             "stars": item["stargazers_count"],
+            "forks": item["forks_count"],
+            "updated": item["updated_at"],
             "repo_url": item["html_url"],
             "description": item["description"]
         }
