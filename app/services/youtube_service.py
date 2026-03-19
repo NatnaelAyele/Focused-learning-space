@@ -26,15 +26,40 @@ def search_youtube(query):
         data2 = response2.json()
         items.extend(data2.get("items", [])) 
 
+    video_ids = []
+    for item in items:
+        vid = item.get("id", {}).get("videoId")
+        if vid:
+            video_ids.append(vid)
+
+    view_counts = {}
+    stats_url = "https://www.googleapis.com/youtube/v3/videos"
+    
+    for i in range(0, len(video_ids), 50):
+        chunk = video_ids[i:i + 50]
+        stats_params = {
+            "part": "statistics", 
+            "id": ",".join(chunk), 
+            "key": youtube_api_key
+        }
+        stats_response = requests.get(stats_url, params=stats_params).json()
+        
+        for v in stats_response.get("items", []):
+            view_counts[v["id"]] = int(v["statistics"].get("viewCount", 0))
+
     for item in items:
         snippet = item.get("snippet", {})
-        video = {
-            "title": snippet.get("title", "No Title"),
-            "channel": snippet.get("channelTitle", "Unknown Channel"),
-            "video_id": item.get("id", {}).get("videoId", ""),
-            "thumbnail": snippet.get("thumbnails", {}).get("medium", {}).get("url", "")
-        }
-        if video["video_id"]:
+        video_id = item.get("id", {}).get("videoId", "")
+        
+        if video_id:
+            video = {
+                "title": snippet.get("title", "No Title"),
+                "channel": snippet.get("channelTitle", "Unknown Channel"),
+                "video_id": video_id,
+                "thumbnail": snippet.get("thumbnails", {}).get("medium", {}).get("url", ""),
+                "date": snippet.get("publishedAt", ""),
+                "views": view_counts.get(video_id, 0) 
+            }
             videos.append(video)
 
     return videos
