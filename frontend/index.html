@@ -8,43 +8,76 @@
 </head>
 <body>
 
-    <nav class="navbar">
-        <h2 class="logo">Eestiazo</h2>
-        <div>
-            <button onclick="openAuth('login')">Login</button>
-            <button class="primary" onclick="openAuth('register')">Get Started</button>
-        </div>
+<nav class="navbar">
+        <h2 class="logo" onclick="switchAppView('home')" style="cursor:pointer;">Eestiazo</h2>
+        <div id="nav-actions">
+            </div>
     </nav>
 
-    <section class="hero">
-        <h1>Learn without distraction</h1>
-        <p>Search videos and code. Stay focused. Build real skills.</p>
+    <div id="home-view">
+        <section class="hero">
+            <h1>Learn without distraction</h1>
+            <p>Search videos and code. Stay focused. Build real skills.</p>
 
-        <div class="search-box">
-            <input id="search-input" placeholder="Search a topic...">
-            <button onclick="handleSearch()">Search</button>
-        </div>
-    </section>
+            <div class="search-box">
+                <input id="search-input" placeholder="Search a topic...">
+                <button onclick="handleSearch()">Search</button>
+            </div>
+        </section>
 
-    <section id="results-section" class="hidden">
-
-        <div class="tabs">
-            <button id="tab-videos" class="active" onclick="switchTab('videos')">Videos</button>
-            <button id="tab-repos" onclick="switchTab('repos')">Repositories</button>
-        </div>
+        <section id="results-section" class="hidden">
+            <div class="tabs">
+                <button id="tab-videos" class="active" onclick="switchTab('videos')">Videos</button>
+                <button id="tab-repos" onclick="switchTab('repos')">Repositories</button>
+            </div>
             
-            <select id="sort-select" class="hidden" onchange="applySort()"></select>
+            <div class="controls-wrapper">
+                <select id="sort-select" class="hidden" onchange="applySort()"></select>
             </div>
 
-        <div id="videos-container">
+            <div id="videos-container"></div>
+            <div id="repos-container" class="hidden"></div>
+            
+            <div id="pagination-controls" class="hidden">
+                <button id="prev-btn" onclick="changePage(-1)">Previous</button>
+                <span id="page-info" style="margin: 0 15px; font-weight: bold;">Page 1</span>
+                <button id="next-btn" onclick="changePage(1)">Next</button>
             </div>
-        <div id="repos-container" class="hidden"></div>
-        <div id="pagination-controls" class="hidden" style="text-align: center; margin-top: 20px; padding-bottom: 40px;">
-            <button id="prev-btn" onclick="changePage(-1)">Previous</button>
-            <span id="page-info" style="margin: 0 15px; font-weight: bold;">Page 1</span>
-            <button id="next-btn" onclick="changePage(1)">Next</button>
+        </section>
+    </div>
+
+    <div id="playlists-view" class="hidden">
+        
+    <div class="playlists-header">
+        <h2>My Playlists</h2>
+        <button class="btn-create-playlist" onclick="openCreatePlaylist()">
+            <span class="plus-icon">+</span> Create Playlist
+        </button>
+    </div>
+
+        <div class="playlists-controls">
+            <input id="playlist-search" type="text" placeholder="Search playlists...">
+            <select id="playlist-category-filter">
+                <option value="">All Categories</option>
+                </select>
         </div>
-    </section>
+
+        <div id="playlists-grid" class="playlists-grid">
+            </div>
+
+    </div>
+
+    <div id="create-playlist-modal" class="modal hidden">
+        <div class="modal-content">
+            <span class="close" onclick="closeCreatePlaylist()">&times;</span>
+            <h3>Create Playlist</h3>
+            <div class="create-playlist-button">
+                <input id="new-playlist-name" type="text" placeholder="Playlist Name">
+                <input id="new-playlist-category" type="text" placeholder="Category">
+                <button class="primary" onclick="handleCreatePlaylist()">Create</button>
+            </div>
+        </div>
+    </div>
 
     <div id="auth-modal" class="modal hidden">
         <div class="modal-content">
@@ -68,14 +101,14 @@
         </div>
     </div>
 
-<div id="video-modal" class="modal">
-    <span class="close-video" onclick="closeVideo()">&times;</span>
-    
-    <div class="video-container">
-        <iframe id="video-player" src="" frameborder="0" allowfullscreen></iframe>
+    <div id="video-modal" class="modal">
+        <span class="close-video" onclick="closeVideo()">&times;</span>
+        
+        <div class="video-container">
+            <iframe id="video-player" src="" frameborder="0" allowfullscreen></iframe>
+        </div>
     </div>
-</div>
 
-    <script src="js/app.js"></script>
+<script src="js/app.js"></script>
 </body>
 </html>

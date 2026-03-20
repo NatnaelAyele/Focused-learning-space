@@ -261,6 +261,9 @@ window.onclick = function(event) {
     if (event.target == modal) {
         closeAuth();
     }
+    if (event.target == createModal) {
+        closeCreatePlaylist();
+    }
 };
 
 function closeAuth() {
@@ -503,16 +506,18 @@ async function handleLogin() {
 function updateNavbarUI() {
     const token = localStorage.getItem("access_token");
     const username = localStorage.getItem("username");
-    const navButtons = document.querySelector(".navbar div");
+    const navButtons = document.querySelector(".navbar div"); 
 
     if (token) {
         navButtons.innerHTML = `
-            <span style="margin-right: 15px; color: #cbd5e1;">Hi, ${username}</span>
+            <button onclick="switchAppView('playlists')">Playlists</button>
+            <span style="margin-right: 15px; margin-left: 15px; color: #cbd5e1;">Hi, ${username}</span>
             <button onclick="handleLogout()">Logout</button>
         `;
     } else {
         navButtons.innerHTML = `
-            <button onclick="openAuth('login')">Login</button>
+            <button onclick="switchAppView('playlists')">Playlists</button>
+            <button onclick="openAuth('login')" style="margin-left: 15px;">Login</button>
             <button class="primary" onclick="openAuth('register')">Get Started</button>
         `;
     }
@@ -566,4 +571,54 @@ function clearAuthForms() {
         errorDisplay.style.display = "none";
         errorDisplay.innerText = "";
     }
+}
+
+function switchAppView(view) {
+    const homeView = document.getElementById("home-view");
+    const playlistsView = document.getElementById("playlists-view");
+
+    if (view === 'playlists') {
+        homeView.classList.add("hidden");
+        playlistsView.classList.remove("hidden");
+        renderPlaylists();
+    } else {
+        playlistsView.classList.add("hidden");
+        homeView.classList.remove("hidden");
+    }
+}
+
+
+function openCreatePlaylist() {
+    const modal = document.getElementById("create-playlist-modal");
+    modal.classList.remove("hidden");
+    modal.classList.add("show");
+}
+
+function closeCreatePlaylist() {
+    const modal = document.getElementById("create-playlist-modal");
+    modal.classList.remove("show");
+    setTimeout(() => {
+        modal.classList.add("hidden");
+        document.getElementById("new-playlist-name").value = "";
+        document.getElementById("new-playlist-category").value = "";
+    }, 300);
+}
+
+function handleCreatePlaylist() {
+    const name = document.getElementById("new-playlist-name").value;
+    const cat = document.getElementById("new-playlist-category").value;
+    
+    if(!name) {
+        showToast("Playlist name is required", "error");
+        return;
+    }
+
+    showToast(`Playlist "${name}" created!`, "success");
+    closeCreatePlaylist();
+}
+
+
+
+function renderPlaylists() {
+   
 }

@@ -323,8 +323,9 @@ button {
 
 .controls-wrapper {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
+    /* This ensures that if there is only one item, it stays on the right. 
+       If you add a "Results count" label later, it will push them to opposite sides. */
+    justify-content: flex-end; 
     max-width: 800px;
     margin: 40px auto 20px;
     padding: 0 20px;
@@ -339,7 +340,7 @@ button {
     cursor: pointer;
     font-family: inherit;
     outline: none;
-    margin-left: 680px;
+    margin-right: 300px; 
 }
 
 #sort-select:hover, #sort-select:focus {
@@ -485,4 +486,153 @@ display: none;
         opacity: 0; 
         transform: translateY(-20px); 
     }
+}
+
+#pagination-controls {
+    text-align: center;
+    margin-top: 20px;
+    padding-bottom: 40px;
+}
+
+#page-info {
+    margin: 0 15px;
+    font-weight: bold;
+}
+
+
+.playlists-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+}
+
+.playlists-controls {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 40px;
+}
+
+.playlists-controls input {
+    flex: 1;
+    padding: 12px 15px;
+    border-radius: 6px;
+    border: 1px solid #334155;
+    background: #1e293b;
+    color: white;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.playlists-controls input:focus {
+    border-color: #3b82f6;
+}
+
+.playlists-controls select {
+    padding: 12px 15px;
+    border-radius: 6px;
+    border: 1px solid #334155;
+    background: #1e293b;
+    color: #94a3b8;
+    outline: none;
+    min-width: 180px;
+    cursor: pointer;
+}
+
+.playlists-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 24px;
+}
+
+.playlist-card {
+    background: #182233;
+    padding: 16px;
+    border-radius: 8px;
+    transition: background-color 0.3s ease;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.playlist-card:hover {
+    background: #283548;
+}
+
+.playlist-card img {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    object-fit: cover;
+    border-radius: 6px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+}
+
+.playlist-card h4 {
+    font-size: 16px;
+    color: #f8fafc;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-bottom: 2px;
+}
+
+.playlist-card p {
+    font-size: 14px;
+    color: #94a3b8;
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.create-playlist-button {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-top: 15px;
+}
+
+#playlists-view{
+    padding: 100px 20px;
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+.btn-create-playlist {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    color: white;
+    border: none;
+    padding: 12px 28px;
+    border-radius: 500px;
+    font-size: 15px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+    letter-spacing: 0.5px;
+}
+
+.btn-create-playlist .plus-icon {
+    font-size: 20px;
+    font-weight: 400;
+    line-height: 1;
+}
+
+.btn-create-playlist:hover {
+    transform: scale(1.06);
+    background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
+    box-shadow: 0 6px 20px rgba(37, 99, 235, 0.4);
+}
+
+.btn-create-playlist:active {
+    transform: scale(0.96);
+    box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3);
+}
+
+.btn-create-playlist:hover .plus-icon {
+    transform: rotate(90deg);
+    transition: transform 0.3s ease;
 }
