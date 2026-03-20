@@ -16,9 +16,9 @@ async function handleSearch() {
     document.getElementById("results-section").classList.remove("hidden");
     document.getElementById("pagination-controls").classList.add("hidden"); 
     document.getElementById("sort-select").classList.add("hidden");
-
-    document.getElementById("videos-container").innerHTML = "<p class='loading-text'>Loading videos...</p>";
-    document.getElementById("repos-container").innerHTML = "<p class='loading-text'>Loading repositories...</p>";
+    const loaderHtml = `<div class="loading-container" style="text-align: center; padding: 40px;"><span class="loader"></span><p>Loading...</p></div>`;
+    document.getElementById("videos-container").innerHTML = loaderHtml;
+    document.getElementById("repos-container").innerHTML = loaderHtml;
 
     try {
         const [videoRes, repoRes] = await Promise.all([
@@ -35,7 +35,10 @@ async function handleSearch() {
         updateSortOptions();
         applySort();
         
-        document.getElementById("sort-select").classList.remove("hidden");
+        if (allVideos.length > 0 || allRepos.length > 0) {
+            document.getElementById("sort-select").classList.remove("hidden");
+        }
+        
         renderCurrentPage();
 
     } catch (error) {
@@ -59,7 +62,7 @@ function renderCurrentPage() {
 
     let container = document.getElementById(containerId);
     if (dataArray.length === 0) {
-        if (!container.innerHTML.includes("Loading")) {
+        if (!container.innerHTML.includes("loader")) {
             container.innerHTML = `<p>No ${activeTab} found.</p>`;
             document.getElementById("pagination-controls").classList.add("hidden");
         }
@@ -234,6 +237,12 @@ function openAuth(type) {
     const modal = document.getElementById("auth-modal");
     const loginForm = document.getElementById("login-form");
     const registerForm = document.getElementById("register-form");
+    const errorDisplay = document.getElementById("auth-error");
+
+    if (errorDisplay) {
+        errorDisplay.style.display = "none";
+        errorDisplay.innerText = "";
+    }
 
     modal.classList.remove("hidden");
     modal.classList.add("show");
@@ -259,6 +268,7 @@ function closeAuth() {
     modal.classList.remove("show");
     setTimeout(() => {
         modal.classList.add("hidden");
+        clearAuthForms();
     }, 300);
 }
 
@@ -408,3 +418,152 @@ window.addEventListener('keydown', function(event) {
         closeVideo();
     }
 });
+
+async function handleRegister() {
+    const username = document.getElementById("reg-username").value;
+    const email = document.getElementById("reg-email").value;
+    const password = document.getElementById("reg-password").value;
+    const errorDisplay = document.getElementById("auth-error");
+
+    errorDisplay.style.display = "none";
+
+    if (!username || !email || !password) {
+        errorDisplay.innerText = "Please fill in all fields.";
+        errorDisplay.style.display = "block";
+        return;
+    }
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/auth/register`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ username, email, password })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data.detail || "Registration failed");
+        }
+
+        showToast("Registration successful! Please log in.", "success");
+        clearAuthForms(); 
+        openAuth('login');
+        
+    } catch (error) {
+        errorDisplay.innerText = error.message;
+        errorDisplay.style.display = "block";
+    }
+}
+
+async function handleLogin() {
+    const username = document.getElementById("login-username").value;
+    const password = document.getElementById("login-password").value;
+    const errorDisplay = document.getElementById("auth-error");
+
+    errorDisplay.style.display = "none";
+
+    if (!username || !password) {
+        errorDisplay.innerText = "Please enter username and password.";
+        errorDisplay.style.display = "block";
+        return;
+    }
+
+    const formData = new URLSearchParams();
+    formData.append("username", username);
+    formData.append("password", password);
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/auth/login`, {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            body: formData.toString()
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data.detail || "Login failed");
+        }
+
+        localStorage.setItem("access_token", data.access_token);
+        localStorage.setItem("username", username);
+        
+        closeAuth();
+        updateNavbarUI();
+        
+        showToast(`Welcome back, ${username}!`, "success");
+
+    } catch (error) {
+        errorDisplay.innerText = error.message;
+        errorDisplay.style.display = "block";
+    }
+}
+
+function updateNavbarUI() {
+    const token = localStorage.getItem("access_token");
+    const username = localStorage.getItem("username");
+    const navButtons = document.querySelector(".navbar div");
+
+    if (token) {
+        navButtons.innerHTML = `
+            <span style="margin-right: 15px; color: #cbd5e1;">Hi, ${username}</span>
+            <button onclick="handleLogout()">Logout</button>
+        `;
+    } else {
+        navButtons.innerHTML = `
+            <button onclick="openAuth('login')">Login</button>
+            <button class="primary" onclick="openAuth('register')">Get Started</button>
+        `;
+    }
+}
+
+function handleLogout() {
+    localStorage.removeItem("access_token");
+    localStorage.removeItem("username");
+    updateNavbarUI();
+    
+    showToast("You have been logged out.", "success");
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+    updateNavbarUI();
+});
+
+
+function showToast(message, type = "success") {
+    let container = document.getElementById("toast-container");
+    if (!container) {
+        container = document.createElement("div");
+        container.id = "toast-container";
+        container.className = "toast-container";
+        document.body.appendChild(container);
+    }
+
+    const toast = document.createElement("div");
+    toast.className = `toast ${type}`;
+    toast.innerText = message;
+
+    container.appendChild(toast);
+
+    setTimeout(() => {
+        toast.style.animation = "fadeOutUp 0.3s forwards ease-in";
+        setTimeout(() => {
+            toast.remove();
+        }, 300);
+    }, 3500);
+}
+
+function clearAuthForms() {
+    document.getElementById("login-username").value = "";
+    document.getElementById("login-password").value = "";
+    document.getElementById("reg-username").value = "";
+    document.getElementById("reg-email").value = "";
+    document.getElementById("reg-password").value = "";
+    
+    const errorDisplay = document.getElementById("auth-error");
+    if (errorDisplay) {
+        errorDisplay.style.display = "none";
+        errorDisplay.innerText = "";
+    }
+}

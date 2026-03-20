@@ -49,20 +49,21 @@
     <div id="auth-modal" class="modal hidden">
         <div class="modal-content">
             <span class="close" onclick="closeAuth()">&times;</span>
-
+            
+            <p id="auth-error"></p>
             <div id="login-form">
                 <h3>Login</h3>
-                <input placeholder="Username">
-                <input type="password" placeholder="Password">
-                <button>Login</button>
+                <input id="login-username" placeholder="Username">
+                <input id="login-password" type="password" placeholder="Password">
+                <button onclick="handleLogin()">Login</button>
             </div>
 
             <div id="register-form" class="hidden">
                 <h3>Register</h3>
-                <input placeholder="Username">
-                <input placeholder="Email">
-                <input type="password" placeholder="Password">
-                <button>Create account</button>
+                <input id="reg-username" placeholder="Username">
+                <input id="reg-email" placeholder="Email">
+                <input id="reg-password" type="password" placeholder="Password">
+                <button onclick="handleRegister()">Create account</button>
             </div>
         </div>
     </div>
