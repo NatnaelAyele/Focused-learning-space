@@ -2,9 +2,10 @@ from sqlalchemy.orm import relationship
 from app.database.db import Base
 from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, UniqueConstraint
 from datetime import datetime
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timezone
 
 class User(Base):
+    """a user account model with one-to-many relationship with playlists."""
     __tablename__ = "users"
 
     id = Column(Integer, primary_key=True, index=True)
@@ -15,6 +16,7 @@ class User(Base):
     playlists = relationship("Playlist", back_populates="user")
 
 class Playlist(Base):
+    """a model for a user-owned collection that groups saved videos and repositories."""
     __tablename__ = "playlists"
 
     id = Column(Integer, primary_key=True, index=True)
@@ -32,6 +34,7 @@ class Playlist(Base):
     )
 
 class PlaylistVideo(Base):
+    """a model for a saved YouTube video inside one playlist."""
     __tablename__ = "playlist_videos"
 
     id = Column(Integer, primary_key=True, index=True)
@@ -50,6 +53,7 @@ class PlaylistVideo(Base):
 
 
 class PlaylistRepo(Base):
+    """a model for a saved GitHub repository inside one playlist."""
     __tablename__ = "playlist_repos"
 
     id = Column(Integer, primary_key=True, index=True)
@@ -68,6 +72,7 @@ class PlaylistRepo(Base):
     )
 
 class Category(Base):
+    """Model for user-defined category catalog used to classify playlists."""
     __tablename__ = "categories"
 
     id = Column(Integer, primary_key=True, index=True)

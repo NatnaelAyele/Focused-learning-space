@@ -11,6 +11,8 @@ else:
     headers = {}
 
 def search_github_repositories(query):
+    """Search GitHub repositories and return a list of the results for the frontend."""
+
     parameters = {
         "q": query,
         "sort": "stars",
@@ -23,6 +25,7 @@ def search_github_repositories(query):
 
     repositories = []
 
+    # minimize the GitHub API response into a the minimal set of fields required.
     for item in data.get("items", []):
         repo = {
             "name": item["name"],
