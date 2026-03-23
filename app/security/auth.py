@@ -30,7 +30,7 @@ def authenticate_user(username:str, plain_password: str, db: Session):
 
 def generate_token(data: dict):
     pay_load = data.copy()
-    expiry_time = datetime.now(timezone.utc) + timedelta(minutes=10)
+    expiry_time = datetime.now(timezone.utc) + timedelta(hours=8)
     pay_load.update({"exp": expiry_time})
     encoded_jwt = jwt.encode(pay_load, secret_key, algorithm=algorithm)
     return encoded_jwt
@@ -41,7 +41,8 @@ def get_current_user(token: str = Depends(token_bearer), db: Session = Depends(g
         username = payload.get("sub")
         if username is None:
             raise HTTPException(status_code=401, detail="Invalid authentication credentials")
-    except JWTError:
+    except JWTError as e:
+        print(f"JWT Error: {e}")
         raise HTTPException(status_code=401, detail="Invalid authentication credentials")
     user = db.query(User).filter(User.username == username).first()
     if user is None:

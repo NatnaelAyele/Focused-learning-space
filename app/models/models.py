@@ -66,3 +66,14 @@ class PlaylistRepo(Base):
     __table_args__ = (
         UniqueConstraint("playlist_id", "repo_url", name="unique_playlist_repo"),
     )
+
+class Category(Base):
+    __tablename__ = "categories"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"))
+    name = Column(String, nullable=False)
+    
+    __table_args__ = (
+        UniqueConstraint("user_id", "name", name="unique_user_category"),
+    )

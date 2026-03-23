@@ -9,7 +9,7 @@
 <body>
 
 <nav class="navbar">
-        <h2 class="logo" onclick="switchAppView('home')" style="cursor:pointer;">Eestiazo</h2>
+        <h2 class="logo" onclick="switchAppView('home')">Eestiazo</h2>
         <div id="nav-actions">
             </div>
     </nav>
@@ -40,7 +40,7 @@
             
             <div id="pagination-controls" class="hidden">
                 <button id="prev-btn" onclick="changePage(-1)">Previous</button>
-                <span id="page-info" style="margin: 0 15px; font-weight: bold;">Page 1</span>
+                <span id="page-info">Page 1</span>
                 <button id="next-btn" onclick="changePage(1)">Next</button>
             </div>
         </section>
@@ -48,23 +48,60 @@
 
     <div id="playlists-view" class="hidden">
         
-    <div class="playlists-header">
-        <h2>My Playlists</h2>
-        <button class="btn-create-playlist" onclick="openCreatePlaylist()">
-            <span class="plus-icon">+</span> Create Playlist
-        </button>
-    </div>
-
-        <div class="playlists-controls">
-            <input id="playlist-search" type="text" placeholder="Search playlists...">
-            <select id="playlist-category-filter">
-                <option value="">All Categories</option>
-                </select>
+        <div class="playlists-header">
+            <h2>My Playlists</h2>
+            <button class="btn-create-playlist" onclick="openCreatePlaylist()">
+                <span class="plus-icon">+</span> Create Playlist
+            </button>
         </div>
 
-        <div id="playlists-grid" class="playlists-grid">
+            <div class="playlists-controls">
+                <input id="playlist-search" type="text" placeholder="Search saved items...">
+                <select id="playlist-category-filter">
+                    <option value="">All Categories</option>
+                    </select>
+                <button onclick="handleLibrarySearch()">Search</button>
+                <button id="clear-library-search" class="btn-clear-search hidden" onclick="clearLibrarySearch()">Clear</button>
             </div>
 
+            <div id="library-results" class="library-results hidden">
+                <div class="library-section">
+                    <h3>Matching Playlists <span id="library-count-playlists" class="section-count">0</span></h3>
+                    <div id="library-playlists-results" class="playlists-grid"></div>
+                </div>
+                <div class="library-section">
+                    <h3>Matching Videos <span id="library-count-videos" class="section-count">0</span></h3>
+                    <div id="library-videos-results" class="library-list"></div>
+                </div>
+                <div class="library-section">
+                    <h3>Matching Repositories <span id="library-count-repos" class="section-count">0</span></h3>
+                    <div id="library-repos-results" class="library-list"></div>
+                </div>
+            </div>
+
+            <div id="playlists-grid" class="playlists-grid">
+                </div>
+
+    </div>
+
+    <div id="playlist-detail-view" class="hidden">
+        <div class="detail-header">
+            <button class="btn-back" onclick="switchAppView('playlists')">
+                &larr; Back
+            </button>
+            <div class="title-area">
+                <h2 id="detail-playlist-name">Playlist Name</h2>
+                <span id="detail-playlist-category" class="badge">Category</span>
+            </div>
+        </div>
+
+        <div class="tabs detail-tabs">
+            <button id="detail-tab-videos" class="active" onclick="switchDetailTab('videos')">Videos (<span id="count-videos">0</span>)</button>
+            <button id="detail-tab-repos" onclick="switchDetailTab('repos')">Repositories (<span id="count-repos">0</span>)</button>
+        </div>
+
+        <div id="detail-videos-container" class="results-grid"></div>
+        <div id="detail-repos-container" class="results-grid hidden"></div>
     </div>
 
     <div id="create-playlist-modal" class="modal hidden">
@@ -101,6 +138,15 @@
         </div>
     </div>
 
+    <div id="add-to-playlist-modal" class="modal hidden">
+        <div class="modal-content">
+            <span class="close" onclick="closeAddToPlaylistModal()">&times;</span>
+            <h3>Add to Playlist</h3>
+            <div id="user-playlists-list" class="playlists-list-container">
+                </div>
+        </div>
+    </div>
+
     <div id="video-modal" class="modal">
         <span class="close-video" onclick="closeVideo()">&times;</span>
         
@@ -109,6 +155,14 @@
         </div>
     </div>
 
-<script src="js/app.js"></script>
+<script src="js/config.js"></script>
+<script src="js/utils.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/media.js"></script>
+<script src="js/search.js"></script>
+<script src="js/library-search.js"></script>
+<script src="js/playlists.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/init.js"></script>
 </body>
 </html>
