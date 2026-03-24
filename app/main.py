@@ -6,11 +6,13 @@ from app.models import models
 from app.api.test import app as test_router
 from fastapi.middleware.cors import CORSMiddleware
 
+# Create database tables at startup if they do not exist yet.
 Base.metadata.create_all(bind=engine)
 
 
 app = FastAPI()
 
+# set up CORS middle ware to allow communication between frontend and backend.
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -19,6 +21,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# include API routes from different modules.
 app.include_router(router)
 app.include_router(auth_router)
 app.include_router(test_router)
@@ -26,4 +29,5 @@ app.include_router(test_router)
 
 @app.get("/health")
 def check_health():
+    """a simple health check endpoint to verify the backend is running."""
     return {"message": "Health check passed!"}

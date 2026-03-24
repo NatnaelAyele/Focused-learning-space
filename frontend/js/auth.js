@@ -1,9 +1,12 @@
 function openAuth(type) {
+    // shows the authentication modal for both login and registration flows, with the appropriate message and fields.
+    
     const modal = document.getElementById("auth-modal");
     const loginForm = document.getElementById("login-form");
     const registerForm = document.getElementById("register-form");
     const errorDisplay = document.getElementById("auth-error");
 
+    // Remove any existing error messages from the modal.
     if (errorDisplay) {
         errorDisplay.style.display = "none";
         errorDisplay.innerText = "";
@@ -12,6 +15,7 @@ function openAuth(type) {
     modal.classList.remove("hidden");
     modal.classList.add("show");
 
+    // Show only the requested form (login/register) within the modal.
     if (type === "login") {
         loginForm.classList.remove("hidden");
         registerForm.classList.add("hidden");
@@ -22,7 +26,9 @@ function openAuth(type) {
 }
 
 function closeAuth() {
+    // close the authentication modals.
     const modal = document.getElementById("auth-modal");
+    // Run close animation, then hide and reset form fields.
     modal.classList.remove("show");
     setTimeout(() => {
         modal.classList.add("hidden");
@@ -31,6 +37,7 @@ function closeAuth() {
 }
 
 async function handleRegister() {
+    // read form fields from refistration modal, validate inputs and submit registered user to backend.
     const username = document.getElementById("reg-username").value;
     const email = document.getElementById("reg-email").value;
     const password = document.getElementById("reg-password").value;
@@ -44,6 +51,7 @@ async function handleRegister() {
         return;
     }
 
+    // Submit registration payload to backend.
     try {
         const response = await fetch(`${API_BASE_URL}/auth/register`, {
             method: "POST",
@@ -57,6 +65,7 @@ async function handleRegister() {
             throw new Error(data.detail || "Registration failed");
         }
 
+        // redirect user to login modal after successful registration.
         showToast("Registration successful! Please log in.", "success");
         clearAuthForms();
         openAuth("login");
@@ -67,6 +76,7 @@ async function handleRegister() {
 }
 
 async function handleLogin() {
+    // Validate login credentials and give access token on successful login.
     const username = document.getElementById("login-username").value;
     const password = document.getElementById("login-password").value;
     const errorDisplay = document.getElementById("auth-error");
@@ -83,6 +93,7 @@ async function handleLogin() {
     formData.append("username", username);
     formData.append("password", password);
 
+    // Check login credentials; if valid, store the access token and refresh navbar state.
     try {
         const response = await fetch(`${API_BASE_URL}/auth/login`, {
             method: "POST",
@@ -92,6 +103,7 @@ async function handleLogin() {
 
         const data = await response.json();
 
+        // If login fails, show error message.
         if (!response.ok) {
             throw new Error(data.detail || "Login failed");
         }
@@ -110,10 +122,12 @@ async function handleLogin() {
 }
 
 function updateNavbarUI() {
+    // Render navbar based on authentication state.
     const token = localStorage.getItem("access_token");
     const username = localStorage.getItem("username");
     const navButtons = document.querySelector(".navbar div");
 
+    // if user is authenticated, show playlists and logout options; otherwise, show login/register buttons.
     if (token) {
         navButtons.innerHTML = `
             <button onclick=\"switchAppView('playlists')\">Playlists</button>
@@ -130,6 +144,7 @@ function updateNavbarUI() {
 }
 
 function handleLogout() {
+    // Clear persisted authentication state and refresh navbar.
     localStorage.removeItem("access_token");
     localStorage.removeItem("username");
     updateNavbarUI();
@@ -138,6 +153,7 @@ function handleLogout() {
 }
 
 function clearAuthForms() {
+    // Reset all authentication form inputs and hide any error message.
     document.getElementById("login-username").value = "";
     document.getElementById("login-password").value = "";
     document.getElementById("reg-username").value = "";

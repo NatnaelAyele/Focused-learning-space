@@ -1,10 +1,15 @@
 async function handleSearch() {
+    // Serch for videos and repositories from external APIs based on a query string, then render results in the UI.
+
+    // Read the main search query from the input field.
     const query = document.getElementById("search-input").value;
     if (query === "") return;
+    // Reset state before issuing a new search request.
     allVideos = [];
     allRepos = [];
     currentPage = 1;
 
+    // Show loading placeholders.
     document.getElementById("results-section").classList.remove("hidden");
     document.getElementById("pagination-controls").classList.add("hidden");
     document.getElementById("sort-select").classList.add("hidden");
@@ -13,6 +18,7 @@ async function handleSearch() {
     document.getElementById("repos-container").innerHTML = loaderHtml;
 
     try {
+        // Run video and repository searches..
         const [videoRes, repoRes] = await Promise.all([
             fetch(API_BASE_URL + "/search/videos?query=" + encodeURIComponent(query)),
             fetch(API_BASE_URL + "/search/repositories?query=" + encodeURIComponent(query))
@@ -21,9 +27,11 @@ async function handleSearch() {
         const videoData = await videoRes.json();
         const repoData = await repoRes.json();
 
+        // Store results in in-memory arrays.
         allVideos = videoData.videos || [];
         allRepos = repoData.repositories || [];
 
+        // Apply default sorting and render the first page.
         updateSortOptions();
         applySort();
 
@@ -33,6 +41,7 @@ async function handleSearch() {
 
         renderCurrentPage();
     } catch (error) {
+        // Show an error message if either request fails.
         console.error("Error:", error);
         document.getElementById("videos-container").innerHTML = "<p>Failed to load results.</p>";
         document.getElementById("repos-container").innerHTML = "<p>Failed to load results.</p>";
@@ -40,6 +49,9 @@ async function handleSearch() {
 }
 
 function renderCurrentPage() {
+    // Render the current page of results based on active tab in a paginated view.   
+
+    // Resolve active dataset based on the selected result tab.
     let dataArray;
     let containerId;
 
@@ -51,6 +63,7 @@ function renderCurrentPage() {
         containerId = "repos-container";
     }
 
+    // if no result is returned from the API show a "no results found" message.
     const container = document.getElementById(containerId);
     if (dataArray.length === 0) {
         if (!container.innerHTML.includes("loader")) {
@@ -60,10 +73,12 @@ function renderCurrentPage() {
         return;
     }
 
+    // Slice the current page of data for paginated view.
     const startIndex = (currentPage - 1) * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
     const paginatedData = dataArray.slice(startIndex, endIndex);
 
+    // render results based on the active tab type (videos/repos).
     if (activeTab === "videos") {
         renderVideoResults(paginatedData);
     } else {
@@ -74,12 +89,14 @@ function renderCurrentPage() {
 }
 
 function changePage(direction) {
+    // Move one page backward/forward.
     currentPage = currentPage + direction;
     renderCurrentPage();
     document.getElementById("results-section").scrollIntoView({ behavior: "smooth" });
 }
 
 function updatePaginationUI(totalItems) {
+    // Compute total pages and wire button states for navigation limits.
     const totalPages = Math.ceil(totalItems / itemsPerPage);
     const pageInfo = document.getElementById("page-info");
     const previousBtn = document.getElementById("prev-btn");
@@ -116,6 +133,7 @@ function updatePaginationUI(totalItems) {
 }
 
 function switchTab(tab) {
+    // Switch between videos/repositories and reset pagination context.
     activeTab = tab;
     currentPage = 1;
 
@@ -141,6 +159,7 @@ function switchTab(tab) {
 }
 
 function renderVideoResults(videoArray) {
+    // Render a paginated list of YouTube video result cards.
     const videosContainer = document.getElementById("videos-container");
     videosContainer.innerHTML = "";
 
@@ -150,6 +169,7 @@ function renderVideoResults(videoArray) {
     }
 
     for (let i = 0; i < videoArray.length; i++) {
+        // Format published date and manage card action controls.
         const video = videoArray[i];
         const dateOptions = { year: "numeric", month: "short", day: "numeric" };
         const formattedDate = new Date(video.date).toLocaleDateString(undefined, dateOptions);
@@ -175,6 +195,7 @@ function renderVideoResults(videoArray) {
 }
 
 function renderRepoResults(repos) {
+    // Render a paginated list of repository result cards.
     const container = document.getElementById("repos-container");
     container.innerHTML = "";
 
@@ -192,6 +213,7 @@ function renderRepoResults(repos) {
     </svg>`;
 
     for (let i = 0; i < repos.length; i++) {
+        // select the best available URL field from the repository object.
         const repo = repos[i];
         const url = repo.repo_url || repo.html_url || repo.url;
         const description = repo.description || "No description.";
@@ -219,6 +241,7 @@ function renderRepoResults(repos) {
 }
 
 function updateSortOptions() {
+    // Provide a drop down option with appropriate sorting criteria based on the active tab (videos/repos).
     const sortSelect = document.getElementById("sort-select");
     if (activeTab === "videos") {
         sortSelect.innerHTML = `
@@ -240,6 +263,8 @@ function updateSortOptions() {
 }
 
 function applySort() {
+    // Sort the in-memory results array based on the selected criteria and re-render the current page.
+
     const sortSelect = document.getElementById("sort-select");
     const sortValue = sortSelect.value;
 
@@ -248,6 +273,8 @@ function applySort() {
     const order = splitValue[1];
 
     if (activeTab === "videos") {
+        // sort videos based on views or published date.
+
         allVideos.sort((a, b) => {
             let valA;
             let valB;
@@ -266,6 +293,7 @@ function applySort() {
             return valA - valB;
         });
     } else {
+        // sort repositories based on stars, forks or updated date.
         allRepos.sort((a, b) => {
             let valA;
             let valB;
@@ -285,6 +313,7 @@ function applySort() {
         });
     }
 
+    // After sorting, render from first page to the current page.
     currentPage = 1;
     renderCurrentPage();
 }
