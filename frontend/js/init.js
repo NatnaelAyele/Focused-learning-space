@@ -1,9 +1,11 @@
 document.addEventListener("DOMContentLoaded", () => {
+    // Initialize navbar auth state once DOM is ready.
     updateNavbarUI();
     const playlistSearch = document.getElementById("playlist-search");
     const categoryFilter = document.getElementById("playlist-category-filter");
 
     if (playlistSearch) {
+        // Submit deep library search on Enter for better keyboard UX.
         playlistSearch.addEventListener("keydown", (event) => {
             if (event.key === "Enter") {
                 handleLibrarySearch();
@@ -12,6 +14,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     if (categoryFilter) {
+        // Re-run search on category change, or reset to playlist grid when query is empty.
         categoryFilter.addEventListener("change", () => {
             const query = playlistSearch ? playlistSearch.value.trim() : "";
             if (query) {
@@ -34,6 +37,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 window.onclick = function(event) {
+    // Centralized backdrop-click handling for all modal dialogs.
     const authModal = document.getElementById("auth-modal");
     const createPlaylistModal = document.getElementById("create-playlist-modal");
     const videoModal = document.getElementById("video-modal");

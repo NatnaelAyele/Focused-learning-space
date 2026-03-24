@@ -1,14 +1,17 @@
 function switchAppView(view) {
+    // Handle navigation between home, playlist and playlist detail views.
     const homeView = document.getElementById("home-view");
     const playlistsView = document.getElementById("playlists-view");
     const detailView = document.getElementById("playlist-detail-view");
 
     const token = localStorage.getItem("access_token");
 
+    // Hide all views first; selectively reveal target view below.
     homeView.classList.add("hidden");
     playlistsView.classList.add("hidden");
     detailView.classList.add("hidden");
 
+    // open playlist view only if a user is authenticated. Otherwise, prompt login.
     if (view === "playlists") {
         if (!token) {
             showToast("You must be logged in to view playlists.", "error");
@@ -25,12 +28,14 @@ function switchAppView(view) {
 }
 
 function openCreatePlaylist() {
+    // Open create-playlist modal.
     const modal = document.getElementById("create-playlist-modal");
     modal.classList.remove("hidden");
     modal.classList.add("show");
 }
 
 function closeCreatePlaylist() {
+    // Close modal and clear any unsaved inputs.
     const modal = document.getElementById("create-playlist-modal");
     modal.classList.remove("show");
     setTimeout(() => {
@@ -41,11 +46,15 @@ function closeCreatePlaylist() {
 }
 
 function handleCreateAndAdd() {
+    // Used when user starts from "add to playlist" and needs a new playlist first.
     closeAddToPlaylistModal();
     openCreatePlaylist();
 }
 
 async function handleCreatePlaylist() {
+    // handle creation of a new playlist.
+
+    // Read playlist form values and validate required fields.
     const name = document.getElementById("new-playlist-name").value.trim();
     const cat = document.getElementById("new-playlist-category").value.trim();
     const token = localStorage.getItem("access_token");
@@ -53,6 +62,7 @@ async function handleCreatePlaylist() {
     if (!name || !cat) return showToast("Fields required", "error");
 
     try {
+        // Create a new playlist via the backend endpoint.
         const url = `${API_BASE_URL}/playlists/new?name=${encodeURIComponent(name)}&category=${encodeURIComponent(cat)}`;
         const response = await fetch(url, {
             method: "POST",
@@ -76,6 +86,7 @@ async function handleCreatePlaylist() {
 }
 
 async function fetchPlaylists() {
+    // Fetch all playlists for authenticated user and refresh UI filters/grid.
     const token = localStorage.getItem("access_token");
     if (!token) return;
 
@@ -100,6 +111,7 @@ async function fetchPlaylists() {
 }
 
 function renderPlaylists(searchTerm = "", categoryFilter = "") {
+    // Render playlist cards after applying local text/category filtering.
     const grid = document.getElementById("playlists-grid");
     grid.innerHTML = "";
 
@@ -129,6 +141,7 @@ function renderPlaylists(searchTerm = "", categoryFilter = "") {
 }
 
 function populateCategoryFilter() {
+    // Rebuild category dropdown from unique playlist categories.
     const filterSelect = document.getElementById("playlist-category-filter");
 
     const uniqueCategories = [...new Set(myPlaylists.map((p) => p.category).filter(Boolean))];
@@ -141,6 +154,7 @@ function populateCategoryFilter() {
 }
 
 async function openAddToPlaylistModal(event, type, id) {
+    // Prevent parent card click action when opening this modal.
     event.stopPropagation();
 
     const token = localStorage.getItem("access_token");
@@ -150,12 +164,14 @@ async function openAddToPlaylistModal(event, type, id) {
         return;
     }
 
+    // Store current item context so confirm step can build API payload.
     if (type === "video") {
         currentItemToAdd = { type: "video", data: allVideos.find((v) => v.video_id === id) };
     } else {
         currentItemToAdd = { type: "repo", data: allRepos.find((r) => r.repo_url === id) };
     }
 
+    // Seed modal list with create-new option, then append existing playlists.
     const listContainer = document.getElementById("user-playlists-list");
     listContainer.innerHTML = `
         <div class=\"playlist-list-item create-new-option\" onclick=\"handleCreateAndAdd()\">
@@ -179,6 +195,7 @@ async function openAddToPlaylistModal(event, type, id) {
 }
 
 function closeAddToPlaylistModal() {
+    // Close modal and clear temporary selected-item state.
     const modal = document.getElementById("add-to-playlist-modal");
     modal.classList.remove("show");
     setTimeout(() => modal.classList.add("hidden"), 300);
@@ -186,12 +203,14 @@ function closeAddToPlaylistModal() {
 }
 
 async function confirmAddToPlaylist(playlistId, playlistName) {
+    // check we have the necessary item data from the search context before attempting to build API payload.
     if (!currentItemToAdd.data) return;
 
     const token = localStorage.getItem("access_token");
     let endpoint = "";
     let payload = {};
 
+    // Build endpoint and payload schema based on selected item type.
     if (currentItemToAdd.type === "video") {
         endpoint = `${API_BASE_URL}/playlists/${playlistId}/videos`;
         payload = {
@@ -212,6 +231,7 @@ async function confirmAddToPlaylist(playlistId, playlistName) {
     }
 
     try {
+        // Persist selected item into target playlist.
         const response = await fetch(endpoint, {
             method: "POST",
             headers: {
@@ -235,6 +255,7 @@ async function confirmAddToPlaylist(playlistId, playlistName) {
 }
 
 async function openPlaylistDetail(playlistId) {
+    // Ensure we have a valid auth token before loading user playlist content.
     const token = localStorage.getItem("access_token");
     if (!token || token === "null" || token === "undefined") {
         console.error("Token is invalid or missing. Redirecting...");
@@ -242,16 +263,19 @@ async function openPlaylistDetail(playlistId) {
         return;
     }
 
+    // Switch view and render temporary loading state.
     switchAppView("playlist-detail");
     document.getElementById("detail-videos-container").innerHTML = "<p>Loading playlist...</p>";
     document.getElementById("detail-repos-container").innerHTML = "";
 
     try {
+        // Fetch playlist with embedded videos and repositories.
         const response = await fetch(`${API_BASE_URL}/playlists/${playlistId}`, {
             headers: { Authorization: `Bearer ${token}` }
         });
 
         if (response.ok) {
+            // Update header and item counts from loaded playlist payload.
             currentDetailedPlaylist = await response.json();
 
             document.getElementById("detail-playlist-name").innerText = currentDetailedPlaylist.name;
@@ -263,6 +287,7 @@ async function openPlaylistDetail(playlistId) {
             document.getElementById("count-videos").innerText = vCount;
             document.getElementById("count-repos").innerText = rCount;
 
+            // Render both tabs, then default to the videos tab.
             renderDetailVideos(currentDetailedPlaylist.videos || []);
             renderDetailRepos(currentDetailedPlaylist.repos || []);
 
@@ -278,6 +303,7 @@ async function openPlaylistDetail(playlistId) {
 }
 
 function switchDetailTab(tab) {
+    // Toggle active styling and visibility for detail sub-tabs.
     const vContainer = document.getElementById("detail-videos-container");
     const rContainer = document.getElementById("detail-repos-container");
     const vTab = document.getElementById("detail-tab-videos");
@@ -297,6 +323,7 @@ function switchDetailTab(tab) {
 }
 
 function renderDetailVideos(videos) {
+    // Render saved videos for the selected playlist detail view.
     const container = document.getElementById("detail-videos-container");
     container.innerHTML = "";
 
@@ -318,6 +345,7 @@ function renderDetailVideos(videos) {
 }
 
 function renderDetailRepos(repos) {
+    // Render saved repositories for the selected playlist detail view.
     const container = document.getElementById("detail-repos-container");
     container.innerHTML = "";
 

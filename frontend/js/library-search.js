@@ -1,4 +1,5 @@
 function setLibraryLoadingState() {
+    // Reuse one loading block for all three grouped search sections.
     const loadingHtml = `<div class=\"loading-container\"><span class=\"loader\"></span><p>Searching library...</p></div>`;
     document.getElementById("library-playlists-results").innerHTML = loadingHtml;
     document.getElementById("library-videos-results").innerHTML = loadingHtml;
@@ -6,10 +7,12 @@ function setLibraryLoadingState() {
 }
 
 function renderLibraryResults(data, query) {
+    // Resolve section containers for grouped result presentation.
     const playlistContainer = document.getElementById("library-playlists-results");
     const videoContainer = document.getElementById("library-videos-results");
     const repoContainer = document.getElementById("library-repos-results");
 
+    // Normalize payload shape and update section counters.
     const playlists = data.playlists || [];
     const videos = data.videos || [];
     const repos = data.repos || [];
@@ -18,10 +21,12 @@ function renderLibraryResults(data, query) {
     document.getElementById("library-count-videos").innerText = videos.length;
     document.getElementById("library-count-repos").innerText = repos.length;
 
+    // Clear previous render before appending new cards.
     playlistContainer.innerHTML = "";
     videoContainer.innerHTML = "";
     repoContainer.innerHTML = "";
 
+    // playlist matches.
     if (playlists.length === 0) {
         playlistContainer.innerHTML = "<p style='color:#94a3b8;'>No matching playlists.</p>";
     } else {
@@ -39,6 +44,7 @@ function renderLibraryResults(data, query) {
         });
     }
 
+    // video matches, each with parent playlist context.
     if (videos.length === 0) {
         videoContainer.innerHTML = "<p style='color:#94a3b8;'>No matching videos.</p>";
     } else {
@@ -56,6 +62,7 @@ function renderLibraryResults(data, query) {
         });
     }
 
+    // repository matches, each with parent playlist context.
     if (repos.length === 0) {
         repoContainer.innerHTML = "<p style='color:#94a3b8;'>No matching repositories.</p>";
     } else {
@@ -78,6 +85,7 @@ function renderLibraryResults(data, query) {
 }
 
 async function handleLibrarySearch() {
+    // Read library query and category filter values.
     const queryInput = document.getElementById("playlist-search");
     const categoryFilter = document.getElementById("playlist-category-filter");
     const query = queryInput ? queryInput.value.trim() : "";
@@ -85,6 +93,7 @@ async function handleLibrarySearch() {
     const resultsSection = document.getElementById("library-results");
     const playlistsGrid = document.getElementById("playlists-grid");
 
+    // Empty query restores normal playlist grid view.
     if (!query) {
         resultsSection.classList.add("hidden");
         playlistsGrid.classList.remove("hidden");
@@ -93,6 +102,7 @@ async function handleLibrarySearch() {
         return;
     }
 
+    // Require authentication before searching user-owned saved items.
     const token = localStorage.getItem("access_token");
     if (!token) {
         showToast("Please login to search your library.", "error");
@@ -100,11 +110,13 @@ async function handleLibrarySearch() {
         return;
     }
 
+    // Show grouped-result view and loading placeholders.
     resultsSection.classList.remove("hidden");
     playlistsGrid.classList.add("hidden");
     setClearSearchVisible(true);
     setLibraryLoadingState();
 
+    // Build backend endpoint with optional category narrowing.
     const url = `${API_BASE_URL}/library/search?query=${encodeURIComponent(query)}${category ? `&category=${encodeURIComponent(category)}` : ""}`;
 
     try {
@@ -116,9 +128,11 @@ async function handleLibrarySearch() {
             throw new Error("Failed to search library.");
         }
 
+        // Render grouped results with text highlighting.
         const data = await response.json();
         renderLibraryResults(data, query);
     } catch (error) {
+        // Show section-level fallback messages if request fails.
         console.error("Library search error:", error);
         document.getElementById("library-playlists-results").innerHTML = "<p>Failed to load results.</p>";
         document.getElementById("library-videos-results").innerHTML = "<p>Failed to load results.</p>";
@@ -127,6 +141,7 @@ async function handleLibrarySearch() {
 }
 
 function clearLibrarySearch() {
+    // Reset query input and switch back to default playlist grid UI.
     const queryInput = document.getElementById("playlist-search");
     const categoryFilter = document.getElementById("playlist-category-filter");
     const resultsSection = document.getElementById("library-results");
