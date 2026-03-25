@@ -32,6 +32,7 @@ function openCreatePlaylist() {
     const modal = document.getElementById("create-playlist-modal");
     modal.classList.remove("hidden");
     modal.classList.add("show");
+    setupCreatePlaylistCategoryInput();
 }
 
 function closeCreatePlaylist() {
@@ -40,9 +41,65 @@ function closeCreatePlaylist() {
     modal.classList.remove("show");
     setTimeout(() => {
         modal.classList.add("hidden");
-        document.getElementById("new-playlist-name").value = "";
-        document.getElementById("new-playlist-category").value = "";
+        resetCreatePlaylistForm();
     }, 300);
+}
+
+function resetCreatePlaylistForm() {
+    const nameInput = document.getElementById("new-playlist-name");
+    const categoryInput = document.getElementById("new-playlist-category");
+    const categorySelect = document.getElementById("new-playlist-category-select");
+    const selectWrapper = document.getElementById("new-playlist-category-select-wrapper");
+    const inputWrapper = document.getElementById("new-playlist-category-input-wrapper");
+
+    if (nameInput) nameInput.value = "";
+    if (categoryInput) categoryInput.value = "";
+    if (categorySelect) categorySelect.innerHTML = "";
+    if (selectWrapper) selectWrapper.classList.add("hidden");
+    if (inputWrapper) inputWrapper.classList.remove("hidden");
+}
+
+function getUniquePlaylistCategories() {
+    return [...new Set(myPlaylists.map((playlist) => (playlist.category || "").trim()).filter(Boolean))];
+}
+
+function setupCreatePlaylistCategoryInput() {
+    const selectWrapper = document.getElementById("new-playlist-category-select-wrapper");
+    const inputWrapper = document.getElementById("new-playlist-category-input-wrapper");
+    const categorySelect = document.getElementById("new-playlist-category-select");
+    const categoryInput = document.getElementById("new-playlist-category");
+
+    if (!selectWrapper || !inputWrapper || !categorySelect || !categoryInput) return;
+
+    const categories = getUniquePlaylistCategories();
+
+    if (categories.length === 0) {
+        selectWrapper.classList.add("hidden");
+        inputWrapper.classList.remove("hidden");
+        categorySelect.innerHTML = "";
+        return;
+    }
+
+    selectWrapper.classList.remove("hidden");
+    inputWrapper.classList.add("hidden");
+    categorySelect.innerHTML = '<option value="" disabled selected>Select a category</option>';
+
+    categories.forEach((category) => {
+        categorySelect.innerHTML += `<option value="${category}">${category}</option>`;
+    });
+
+    categorySelect.innerHTML += '<option value="__new__">+ Add new category</option>';
+
+    categorySelect.onchange = () => {
+        if (categorySelect.value === "__new__") {
+            inputWrapper.classList.remove("hidden");
+            categoryInput.value = "";
+            categoryInput.focus();
+        } else {
+            inputWrapper.classList.add("hidden");
+            categoryInput.value = "";
+        }
+    };
 }
 
 function handleCreateAndAdd() {
@@ -56,7 +113,20 @@ async function handleCreatePlaylist() {
 
     // Read playlist form values and validate required fields.
     const name = document.getElementById("new-playlist-name").value.trim();
-    const cat = document.getElementById("new-playlist-category").value.trim();
+    const categoryInput = document.getElementById("new-playlist-category");
+    const categorySelect = document.getElementById("new-playlist-category-select");
+    const selectWrapper = document.getElementById("new-playlist-category-select-wrapper");
+    let cat = "";
+
+    if (selectWrapper && !selectWrapper.classList.contains("hidden")) {
+        if (categorySelect && categorySelect.value && categorySelect.value !== "__new__") {
+            cat = categorySelect.value.trim();
+        } else if (categoryInput) {
+            cat = categoryInput.value.trim();
+        }
+    } else if (categoryInput) {
+        cat = categoryInput.value.trim();
+    }
     const token = localStorage.getItem("access_token");
 
     if (!name || !cat) return showToast("Fields required", "error");
@@ -101,6 +171,7 @@ async function fetchPlaylists() {
             myPlaylists = await response.json();
             renderPlaylists();
             populateCategoryFilter();
+            setupCreatePlaylistCategoryInput();
         } else {
             showToast("Failed to load playlists.", "error");
         }

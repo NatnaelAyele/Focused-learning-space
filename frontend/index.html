@@ -110,7 +110,12 @@
             <h3>Create Playlist</h3>
             <div class="create-playlist-button">
                 <input id="new-playlist-name" type="text" placeholder="Playlist Name">
-                <input id="new-playlist-category" type="text" placeholder="Category">
+                <div id="new-playlist-category-select-wrapper" class="hidden">
+                    <select id="new-playlist-category-select"></select>
+                </div>
+                <div id="new-playlist-category-input-wrapper">
+                    <input id="new-playlist-category" type="text" placeholder="Category">
+                </div>
                 <button class="primary" onclick="handleCreatePlaylist()">Create</button>
             </div>
         </div>

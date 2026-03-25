@@ -3,6 +3,17 @@ document.addEventListener("DOMContentLoaded", () => {
     updateNavbarUI();
     const playlistSearch = document.getElementById("playlist-search");
     const categoryFilter = document.getElementById("playlist-category-filter");
+    const serchApi = document.getElementById("search-input");
+
+    if(serchApi){
+        // Submit global search on Enter for better keyboard UX.
+        serchApi.addEventListener("keydown", (event) => {
+            if (event.key === "Enter") {
+                handleSearch();
+            }
+        });
+    }
+
 
     if (playlistSearch) {
         // Submit deep library search on Enter for better keyboard UX.
@@ -11,6 +22,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 handleLibrarySearch();
             }
         });
+    
     }
 
     if (categoryFilter) {
