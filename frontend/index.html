@@ -93,6 +93,7 @@
                 <h2 id="detail-playlist-name">Playlist Name</h2>
                 <span id="detail-playlist-category" class="badge">Category</span>
             </div>
+            <button class="btn-delete-playlist" onclick="handleDeleteCurrentPlaylist()">Delete Playlist</button>
         </div>
 
         <div class="tabs detail-tabs">
@@ -116,7 +117,7 @@
                 <div id="new-playlist-category-input-wrapper">
                     <input id="new-playlist-category" type="text" placeholder="Category">
                 </div>
-                <button class="primary" onclick="handleCreatePlaylist()">Create</button>
+                <button id="create-playlist-submit" class="primary" onclick="handleCreatePlaylist()">Create</button>
             </div>
         </div>
     </div>
@@ -130,7 +131,7 @@
                 <h3>Login</h3>
                 <input id="login-username" placeholder="Username">
                 <input id="login-password" type="password" placeholder="Password">
-                <button onclick="handleLogin()">Login</button>
+                <button id="login-submit" onclick="handleLogin()">Login</button>
             </div>
 
             <div id="register-form" class="hidden">
@@ -138,7 +139,7 @@
                 <input id="reg-username" placeholder="Username">
                 <input id="reg-email" placeholder="Email">
                 <input id="reg-password" type="password" placeholder="Password">
-                <button onclick="handleRegister()">Create account</button>
+                <button id="register-submit" onclick="handleRegister()">Create account</button>
             </div>
         </div>
     </div>

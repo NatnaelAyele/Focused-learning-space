@@ -18,18 +18,22 @@ async function handleSearch() {
     document.getElementById("repos-container").innerHTML = loaderHtml;
 
     try {
-        // Run video and repository searches..
+        // Run video and repository searches.
         const [videoRes, repoRes] = await Promise.all([
-            fetch(API_BASE_URL + "/search/videos?query=" + encodeURIComponent(query)),
-            fetch(API_BASE_URL + "/search/repositories?query=" + encodeURIComponent(query))
+            fetchJson(API_BASE_URL + "/search/videos?query=" + encodeURIComponent(query), {}, { retries: 1 }),
+            fetchJson(API_BASE_URL + "/search/repositories?query=" + encodeURIComponent(query), {}, { retries: 1 })
         ]);
 
-        const videoData = await videoRes.json();
-        const repoData = await repoRes.json();
+        if (!videoRes.ok) {
+            showToast(videoRes.error || "Failed to load videos.", "error");
+        }
+        if (!repoRes.ok) {
+            showToast(repoRes.error || "Failed to load repositories.", "error");
+        }
 
         // Store results in in-memory arrays.
-        allVideos = videoData.videos || [];
-        allRepos = repoData.repositories || [];
+        allVideos = (videoRes.ok && videoRes.data && videoRes.data.videos) ? videoRes.data.videos : [];
+        allRepos = (repoRes.ok && repoRes.data && repoRes.data.repositories) ? repoRes.data.repositories : [];
 
         // Apply default sorting and render the first page.
         updateSortOptions();
@@ -40,9 +44,15 @@ async function handleSearch() {
         }
 
         renderCurrentPage();
+        if (allVideos.length === 0 && allRepos.length === 0) {
+            document.getElementById("videos-container").innerHTML = "<p>No videos found.</p>";
+            document.getElementById("repos-container").innerHTML = "<p>No repositories found.</p>";
+            document.getElementById("pagination-controls").classList.add("hidden");
+        }
     } catch (error) {
         // Show an error message if either request fails.
         console.error("Error:", error);
+        showToast("Search failed. Please try again.", "error");
         document.getElementById("videos-container").innerHTML = "<p>Failed to load results.</p>";
         document.getElementById("repos-container").innerHTML = "<p>Failed to load results.</p>";
     }
@@ -66,10 +76,8 @@ function renderCurrentPage() {
     // if no result is returned from the API show a "no results found" message.
     const container = document.getElementById(containerId);
     if (dataArray.length === 0) {
-        if (!container.innerHTML.includes("loader")) {
-            container.innerHTML = `<p>No ${activeTab} found.</p>`;
-            document.getElementById("pagination-controls").classList.add("hidden");
-        }
+        container.innerHTML = `<p>No ${activeTab} found.</p>`;
+        document.getElementById("pagination-controls").classList.add("hidden");
         return;
     }
 

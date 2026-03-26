@@ -120,20 +120,21 @@ async function handleLibrarySearch() {
     const url = `${API_BASE_URL}/library/search?query=${encodeURIComponent(query)}${category ? `&category=${encodeURIComponent(category)}` : ""}`;
 
     try {
-        const response = await fetch(url, {
+        const result = await fetchJson(url, {
             headers: { Authorization: `Bearer ${token}` }
         });
 
-        if (!response.ok) {
-            throw new Error("Failed to search library.");
+        if (!result.ok) {
+            throw new Error(result.error || "Failed to search library.");
         }
 
         // Render grouped results with text highlighting.
-        const data = await response.json();
+        const data = result.data || {};
         renderLibraryResults(data, query);
     } catch (error) {
         // Show section-level fallback messages if request fails.
         console.error("Library search error:", error);
+        showToast(error.message || "Failed to search library.", "error");
         document.getElementById("library-playlists-results").innerHTML = "<p>Failed to load results.</p>";
         document.getElementById("library-videos-results").innerHTML = "<p>Failed to load results.</p>";
         document.getElementById("library-repos-results").innerHTML = "<p>Failed to load results.</p>";

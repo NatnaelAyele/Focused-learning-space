@@ -41,3 +41,54 @@ function setClearSearchVisible(isVisible) {
         clearBtn.classList.add("hidden");
     }
 }
+
+function isOffline() {
+    return typeof navigator !== "undefined" && navigator && navigator.onLine === false;
+}
+
+async function fetchJson(url, options = {}, config = {}) {
+    const timeoutMs = config.timeoutMs || 10000;
+    const retries = config.retries || 0;
+    const controller = new AbortController();
+    const attemptFetch = async () => {
+        const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+        try {
+            const response = await fetch(url, { ...options, signal: controller.signal });
+            clearTimeout(timeoutId);
+
+            let data = null;
+            try {
+                data = await response.json();
+            } catch (error) {
+                data = null;
+            }
+
+            if (!response.ok) {
+                return {
+                    ok: false,
+                    status: response.status,
+                    data,
+                    error: (data && (data.detail || data.message)) || `Request failed (${response.status}).`
+                };
+            }
+
+            return { ok: true, status: response.status, data };
+        } catch (error) {
+            clearTimeout(timeoutId);
+            return { ok: false, status: 0, data: null, error: "Network error." };
+        }
+    };
+
+    let result = await attemptFetch();
+    let attempts = 0;
+    while (!result.ok && attempts < retries) {
+        attempts += 1;
+        result = await attemptFetch();
+    }
+
+    if (!result.ok && isOffline()) {
+        result.error = "You appear to be offline.";
+    }
+
+    return result;
+}

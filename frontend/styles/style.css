@@ -163,6 +163,7 @@ button {
     margin: 15px 0;
     border-radius: 12px;
     transition: transform 0.2s, box-shadow 0.2s;
+    position: relative;
 }
 
 .result-item:hover {
@@ -245,6 +246,22 @@ button {
     border-color: #3b82f6;
 }
 
+.modal-content select {
+    width: 100%;
+    padding: 12px 15px;
+    border: 1px solid #334155;
+    background: #0f172a;
+    color: white;
+    border-radius: 6px;
+    outline: none;
+    transition: border-color 0.2s;
+    cursor: pointer;
+}
+
+.modal-content select:focus {
+    border-color: #3b82f6;
+}
+
 .modal-content button {
     padding: 12px;
     background: #3b82f6;
@@ -257,6 +274,12 @@ button {
 }
 
 .modal-content button:hover {
+    background: #2563eb;
+}
+
+.modal-content button:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
     background: #2563eb;
 }
 
@@ -621,6 +644,7 @@ mark.highlight {
     display: flex;
     flex-direction: column;
     gap: 12px;
+    position: relative;
 }
 
 .playlist-card:hover {
@@ -653,6 +677,30 @@ mark.highlight {
     text-overflow: ellipsis;
 }
 
+.btn-delete-playlist-card {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    border: none;
+    background: rgba(239, 68, 68, 0.15);
+    color: #fca5a5;
+    font-size: 18px;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.btn-delete-playlist-card:hover {
+    background: rgba(239, 68, 68, 0.3);
+    color: #fee2e2;
+    transform: scale(1.05);
+}
+
 .create-playlist-button {
     display: flex;
     flex-direction: column;
@@ -674,8 +722,9 @@ mark.highlight {
 
 .results-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(240px, 320px));
     gap: 18px;
+    justify-content: center;
 }
 
 .results-grid .result-item {
@@ -860,6 +909,48 @@ mark.highlight {
     margin-bottom: 30px;
     padding-bottom: 20px;
     border-bottom: 1px solid #334155;
+}
+
+.btn-delete-playlist {
+    margin-left: auto;
+    background: rgba(239, 68, 68, 0.15);
+    color: #fecaca;
+    border: 1px solid rgba(239, 68, 68, 0.5);
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    transition: all 0.2s ease;
+}
+
+.btn-delete-playlist:hover {
+    background: rgba(239, 68, 68, 0.35);
+    color: #fff1f2;
+}
+
+.btn-remove-item {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    border: none;
+    background: rgba(239, 68, 68, 0.15);
+    color: #fca5a5;
+    font-size: 18px;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    z-index: 2;
+}
+
+.btn-remove-item:hover {
+    background: rgba(239, 68, 68, 0.3);
+    color: #fee2e2;
+    transform: scale(1.05);
 }
 
 .btn-back {

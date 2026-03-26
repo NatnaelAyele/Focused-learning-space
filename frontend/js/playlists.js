@@ -42,7 +42,16 @@ function closeCreatePlaylist() {
     setTimeout(() => {
         modal.classList.add("hidden");
         resetCreatePlaylistForm();
+        setCreatePlaylistLoadingState(false);
     }, 300);
+}
+
+function setCreatePlaylistLoadingState(isLoading) {
+    const submitButton = document.getElementById("create-playlist-submit");
+    if (!submitButton) return;
+
+    submitButton.disabled = isLoading;
+    submitButton.innerText = isLoading ? "Creating..." : "Create";
 }
 
 function resetCreatePlaylistForm() {
@@ -104,7 +113,7 @@ function setupCreatePlaylistCategoryInput() {
 
 function handleCreateAndAdd() {
     // Used when user starts from "add to playlist" and needs a new playlist first.
-    closeAddToPlaylistModal();
+    closeAddToPlaylistModal(true);
     openCreatePlaylist();
 }
 
@@ -131,6 +140,8 @@ async function handleCreatePlaylist() {
 
     if (!name || !cat) return showToast("Fields required", "error");
 
+    setCreatePlaylistLoadingState(true);
+
     try {
         // Create a new playlist via the backend endpoint.
         const url = `${API_BASE_URL}/playlists/new?name=${encodeURIComponent(name)}&category=${encodeURIComponent(cat)}`;
@@ -141,17 +152,28 @@ async function handleCreatePlaylist() {
 
         if (response.ok) {
             const newPlaylist = await response.json();
-            showToast(`Playlist "${name}" created!`, "success");
+            const isCreateAndAdd = Boolean(currentItemToAdd.data);
+            if (!isCreateAndAdd) {
+                showToast(`Playlist "${name}" created!`, "success");
+            }
             closeCreatePlaylist();
 
-            if (currentItemToAdd.data) {
-                confirmAddToPlaylist(newPlaylist.id, newPlaylist.name);
+            if (isCreateAndAdd) {
+                confirmAddToPlaylist(newPlaylist.id, newPlaylist.name, {
+                    successMessage: "Playlist created and item added.",
+                    restoreSearchResults: true
+                });
             } else {
                 fetchPlaylists();
             }
+        } else {
+            const errorData = await response.json();
+            showToast(errorData.detail || "Failed to create playlist.", "error");
         }
     } catch (error) {
-        showToast("Error creating playlist", "error");
+        showToast("Network error creating playlist.", "error");
+    } finally {
+        setCreatePlaylistLoadingState(false);
     }
 }
 
@@ -202,6 +224,7 @@ function renderPlaylists(searchTerm = "", categoryFilter = "") {
         grid.innerHTML += `
             <div class=\"playlist-card\" onclick=\"openPlaylistDetail(${playlist.id})\" style=\"cursor: pointer;\">
                 <img src=\"${imageSrc}\" alt=\"${playlist.name}\">
+                <button class=\"btn-delete-playlist-card\" onclick=\"handleDeletePlaylist(event, ${playlist.id}, '${playlist.name}')\" title=\"Delete playlist\">&times;</button>
                 <div>
                     <h4>${playlist.name}</h4>
                     <p>${playlist.category || "Uncategorized"}</p>
@@ -209,6 +232,37 @@ function renderPlaylists(searchTerm = "", categoryFilter = "") {
             </div>
         `;
     });
+}
+
+async function handleDeletePlaylist(event, playlistId, playlistName) {
+    //Delete playlist after from a saved library view after confirming with the user.
+
+    event.stopPropagation();
+    const confirmed = window.confirm(`Delete playlist "${playlistName}"? This cannot be undone.`);
+    if (!confirmed) return;
+
+    const token = localStorage.getItem("access_token");
+    // Send a delete request to the backend to remove the playlist.
+    try {
+        const response = await fetch(`${API_BASE_URL}/playlists/${playlistId}`, {
+            method: "DELETE",
+            headers: { Authorization: `Bearer ${token}` }
+        });
+
+        // If response from backend is not ok, Display error message.
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.detail || "Failed to delete playlist.");
+        }
+
+        myPlaylists = myPlaylists.filter((playlist) => playlist.id !== playlistId);
+        renderPlaylists();
+        populateCategoryFilter();
+        setupCreatePlaylistCategoryInput();
+        showToast("Playlist deleted.", "success");
+    } catch (error) {
+        showToast(error.message || "Failed to delete playlist.", "error");
+    }
 }
 
 function populateCategoryFilter() {
@@ -265,15 +319,17 @@ async function openAddToPlaylistModal(event, type, id) {
     modal.classList.add("show");
 }
 
-function closeAddToPlaylistModal() {
+function closeAddToPlaylistModal(keepSelection = false) {
     // Close modal and clear temporary selected-item state.
     const modal = document.getElementById("add-to-playlist-modal");
     modal.classList.remove("show");
     setTimeout(() => modal.classList.add("hidden"), 300);
-    currentItemToAdd = { type: null, data: null };
+    if (!keepSelection) {
+        currentItemToAdd = { type: null, data: null };
+    }
 }
 
-async function confirmAddToPlaylist(playlistId, playlistName) {
+async function confirmAddToPlaylist(playlistId, playlistName, options = {}) {
     // check we have the necessary item data from the search context before attempting to build API payload.
     if (!currentItemToAdd.data) return;
 
@@ -313,8 +369,13 @@ async function confirmAddToPlaylist(playlistId, playlistName) {
         });
 
         if (response.ok) {
-            showToast(`Added to "${playlistName}"!`, "success");
+            const successMessage = options.successMessage || `Added to "${playlistName}"!`;
+            showToast(successMessage, "success");
             closeAddToPlaylistModal();
+            if (options.restoreSearchResults && typeof renderCurrentPage === "function") {
+                restoreSearchResultsView();
+                renderCurrentPage();
+            }
         } else {
             const errorData = await response.json();
             showToast(errorData.detail || "Failed to add item.", "error");
@@ -322,6 +383,33 @@ async function confirmAddToPlaylist(playlistId, playlistName) {
     } catch (error) {
         console.error("Error adding to playlist:", error);
         showToast("Network error.", "error");
+    }
+}
+
+function restoreSearchResultsView() {
+    //After adding item to playlist from search results, maintain the search results view instead of navigating back to the playlist grid.
+
+    const resultsSection = document.getElementById("results-section");
+    const videosContainer = document.getElementById("videos-container");
+    const reposContainer = document.getElementById("repos-container");
+    const videosTabBtn = document.getElementById("tab-videos");
+    const reposTabBtn = document.getElementById("tab-repos");
+
+    if (!resultsSection || !videosContainer || !reposContainer) return;
+
+    resultsSection.classList.remove("hidden");
+
+    // Display content of the active tab from where the user initiated the add-to-playlist action.
+    if (activeTab === "repos") {
+        reposContainer.classList.remove("hidden");
+        videosContainer.classList.add("hidden");
+        if (reposTabBtn) reposTabBtn.classList.add("active");
+        if (videosTabBtn) videosTabBtn.classList.remove("active");
+    } else {
+        videosContainer.classList.remove("hidden");
+        reposContainer.classList.add("hidden");
+        if (videosTabBtn) videosTabBtn.classList.add("active");
+        if (reposTabBtn) reposTabBtn.classList.remove("active");
     }
 }
 
@@ -373,6 +461,37 @@ async function openPlaylistDetail(playlistId) {
     }
 }
 
+async function handleDeleteCurrentPlaylist() {
+    // Delete playlist from with in the detail view.
+
+    if (!currentDetailedPlaylist) return;
+    const confirmed = window.confirm(`Delete playlist "${currentDetailedPlaylist.name}"? This cannot be undone.`);
+    if (!confirmed) return;
+
+    const token = localStorage.getItem("access_token");
+
+    // Send a delete request to the backend to remove the playlist.
+    try {
+        const response = await fetch(`${API_BASE_URL}/playlists/${currentDetailedPlaylist.id}`, {
+            method: "DELETE",
+            headers: { Authorization: `Bearer ${token}` }
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.detail || "Failed to delete playlist.");
+        }
+
+        showToast("Playlist deleted.", "success");
+        currentDetailedPlaylist = null;
+        switchAppView("playlists");
+        await fetchPlaylists();
+    } catch (error) {
+        // if deletion fails as a result of any backend error, stay on detail view and show error message.
+        showToast(error.message || "Failed to delete playlist.", "error");
+    }
+}
+
 function switchDetailTab(tab) {
     // Toggle active styling and visibility for detail sub-tabs.
     const vContainer = document.getElementById("detail-videos-container");
@@ -406,6 +525,7 @@ function renderDetailVideos(videos) {
     videos.forEach((video) => {
         container.innerHTML += `
             <div class=\"result-item video-card\" onclick=\"openVideo('${video.youtube_video_id}')\" style=\"cursor:pointer; position: relative;\">
+                <button class=\"btn-remove-item\" onclick=\"handleRemoveVideoFromPlaylist(event, ${video.id})\" title=\"Remove video\">&times;</button>
                 <img src=\"${video.thumbnail}\" alt=\"thumb\">
                 <div class=\"info\">
                     <h4>${video.title}</h4>
@@ -413,6 +533,39 @@ function renderDetailVideos(videos) {
                 </div>
             </div>`;
     });
+}
+
+async function handleRemoveVideoFromPlaylist(event, videoId) {
+    // Remove a single video from a playlist.
+
+    event.stopPropagation();
+    if (!currentDetailedPlaylist) return;
+
+    // Confirm with the user before removing the video from the playlist. 
+    const confirmed = window.confirm("Remove this video from the playlist?");
+    if (!confirmed) return;
+
+    const token = localStorage.getItem("access_token");
+
+    // Send a delete request to the backend to remove the video from the playlist.
+    try {
+        const response = await fetch(`${API_BASE_URL}/playlists/${currentDetailedPlaylist.id}/videos/${videoId}`, {
+            method: "DELETE",
+            headers: { Authorization: `Bearer ${token}` }
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.detail || "Failed to remove video.");
+        }
+
+        currentDetailedPlaylist.videos = currentDetailedPlaylist.videos.filter((video) => video.id !== videoId);
+        document.getElementById("count-videos").innerText = currentDetailedPlaylist.videos.length;
+        renderDetailVideos(currentDetailedPlaylist.videos || []);
+        showToast("Video removed.", "success");
+    } catch (error) {
+        showToast(error.message || "Failed to remove video.", "error");
+    }
 }
 
 function renderDetailRepos(repos) {
@@ -428,6 +581,7 @@ function renderDetailRepos(repos) {
     repos.forEach((repo) => {
         container.innerHTML += `
             <div class=\"result-item repo-card\" onclick=\"openRepo('${repo.repo_url}')\" style=\"cursor:pointer; position: relative;\">
+                <button class=\"btn-remove-item\" onclick=\"handleRemoveRepoFromPlaylist(event, ${repo.id})\" title=\"Remove repository\">&times;</button>
                 <div class=\"repo-title-wrapper\">
                     <h4><span class=\"repo-title\">${repo.name}</span></h4>
                 </div>
@@ -438,4 +592,36 @@ function renderDetailRepos(repos) {
                 <p>${repo.description || "No description"}</p>
             </div>`;
     });
+}
+
+async function handleRemoveRepoFromPlaylist(event, repoId) {
+    // Remove a single repository from a playlist.
+
+    
+    event.stopPropagation();
+    if (!currentDetailedPlaylist) return;
+    //Confirm with the user before removing the repository from the playlist.
+    const confirmed = window.confirm("Remove this repository from the playlist?");
+    if (!confirmed) return;
+
+    const token = localStorage.getItem("access_token");
+    // Send a delete request to the backend to remove the repository from the playlist.
+    try {
+        const response = await fetch(`${API_BASE_URL}/playlists/${currentDetailedPlaylist.id}/repositories/${repoId}`, {
+            method: "DELETE",
+            headers: { Authorization: `Bearer ${token}` }
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.detail || "Failed to remove repository.");
+        }
+
+        currentDetailedPlaylist.repos = currentDetailedPlaylist.repos.filter((repo) => repo.id !== repoId);
+        document.getElementById("count-repos").innerText = currentDetailedPlaylist.repos.length;
+        renderDetailRepos(currentDetailedPlaylist.repos || []);
+        showToast("Repository removed.", "success");
+    } catch (error) {
+        showToast(error.message || "Failed to remove repository.", "error");
+    }
 }

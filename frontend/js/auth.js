@@ -33,7 +33,24 @@ function closeAuth() {
     setTimeout(() => {
         modal.classList.add("hidden");
         clearAuthForms();
+        setAuthLoadingState(false, "login");
+        setAuthLoadingState(false, "register");
     }, 300);
+}
+
+function setAuthLoadingState(isLoading, mode) {
+    const loginButton = document.getElementById("login-submit");
+    const registerButton = document.getElementById("register-submit");
+
+    if (mode === "login" && loginButton) {
+        loginButton.disabled = isLoading;
+        loginButton.innerText = isLoading ? "Logging in..." : "Login";
+    }
+
+    if (mode === "register" && registerButton) {
+        registerButton.disabled = isLoading;
+        registerButton.innerText = isLoading ? "Creating..." : "Create account";
+    }
 }
 
 async function handleRegister() {
@@ -51,18 +68,18 @@ async function handleRegister() {
         return;
     }
 
+    setAuthLoadingState(true, "register");
+
     // Submit registration payload to backend.
     try {
-        const response = await fetch(`${API_BASE_URL}/auth/register`, {
+        const result = await fetchJson(`${API_BASE_URL}/auth/register`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ username, email, password })
         });
 
-        const data = await response.json();
-
-        if (!response.ok) {
-            throw new Error(data.detail || "Registration failed");
+        if (!result.ok) {
+            throw new Error(result.error || "Registration failed");
         }
 
         // redirect user to login modal after successful registration.
@@ -72,6 +89,8 @@ async function handleRegister() {
     } catch (error) {
         errorDisplay.innerText = error.message;
         errorDisplay.style.display = "block";
+    } finally {
+        setAuthLoadingState(false, "register");
     }
 }
 
@@ -89,26 +108,26 @@ async function handleLogin() {
         return;
     }
 
+    setAuthLoadingState(true, "login");
+
     const formData = new URLSearchParams();
     formData.append("username", username);
     formData.append("password", password);
 
     // Check login credentials; if valid, store the access token and refresh navbar state.
     try {
-        const response = await fetch(`${API_BASE_URL}/auth/login`, {
+        const result = await fetchJson(`${API_BASE_URL}/auth/login`, {
             method: "POST",
             headers: { "Content-Type": "application/x-www-form-urlencoded" },
             body: formData.toString()
         });
 
-        const data = await response.json();
-
         // If login fails, show error message.
-        if (!response.ok) {
-            throw new Error(data.detail || "Login failed");
+        if (!result.ok) {
+            throw new Error(result.error || "Login failed");
         }
 
-        localStorage.setItem("access_token", data.access_token);
+        localStorage.setItem("access_token", result.data.access_token);
         localStorage.setItem("username", username);
 
         closeAuth();
@@ -118,6 +137,8 @@ async function handleLogin() {
     } catch (error) {
         errorDisplay.innerText = error.message;
         errorDisplay.style.display = "block";
+    } finally {
+        setAuthLoadingState(false, "login");
     }
 }
 
