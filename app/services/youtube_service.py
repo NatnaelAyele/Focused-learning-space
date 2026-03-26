@@ -2,12 +2,20 @@ import requests
 import os
 from dotenv import load_dotenv
 
+
+class ExternalServiceError(Exception):
+    """Raised when an external API request fails or returns invalid data."""
+    pass
+
 load_dotenv()
 youtube_api_key = os.getenv("YOUTUBE_API_KEY")
 youtube_search_url = "https://www.googleapis.com/youtube/v3/search"
 
 def search_youtube(query):
     """Search YouTube videos and get view-count statistics for each result."""
+    if not youtube_api_key:
+        raise ExternalServiceError("YouTube API key is not configured.")
+
     videos = []
     # fetch first page of matching videos.
     parameters = {
@@ -16,18 +24,26 @@ def search_youtube(query):
         "key": youtube_api_key,
         "maxResults": 50,
         "type": "video"}
-    
-    response1 = requests.get(youtube_search_url, params=parameters)
-    data1 = response1.json()
+
+    try:
+        response1 = requests.get(youtube_search_url, params=parameters, timeout=10)
+        response1.raise_for_status()
+        data1 = response1.json()
+    except (requests.RequestException, ValueError) as exc:
+        raise ExternalServiceError("YouTube search request failed.") from exc
     
     items = data1.get("items", [])
     
     # fetch one additional page where next page token is available.
     if "nextPageToken" in data1:
         parameters["pageToken"] = data1["nextPageToken"]
-        response2 = requests.get(youtube_search_url, params=parameters)
-        data2 = response2.json()
-        items.extend(data2.get("items", [])) 
+        try:
+            response2 = requests.get(youtube_search_url, params=parameters, timeout=10)
+            response2.raise_for_status()
+            data2 = response2.json()
+            items.extend(data2.get("items", []))
+        except (requests.RequestException, ValueError) as exc:
+            raise ExternalServiceError("YouTube pagination request failed.") from exc
 
     video_ids = []
     # Collect video IDs to request statistics from the videos endpoint.
@@ -43,13 +59,18 @@ def search_youtube(query):
     for i in range(0, len(video_ids), 50):
         chunk = video_ids[i:i + 50]
         stats_params = {
-            "part": "statistics", 
-            "id": ",".join(chunk), 
+            "part": "statistics",
+            "id": ",".join(chunk),
             "key": youtube_api_key
         }
-        stats_response = requests.get(stats_url, params=stats_params).json()
-        
-        for v in stats_response.get("items", []):
+        try:
+            stats_response = requests.get(stats_url, params=stats_params, timeout=10)
+            stats_response.raise_for_status()
+            stats_data = stats_response.json()
+        except (requests.RequestException, ValueError) as exc:
+            raise ExternalServiceError("YouTube stats request failed.") from exc
+
+        for v in stats_data.get("items", []):
             view_counts[v["id"]] = int(v["statistics"].get("viewCount", 0))
 
     # Normalize API fields into frontend-friendly response structure.

@@ -3,8 +3,8 @@ from sqlalchemy.orm import Session
 from sqlalchemy import or_, func
 from app.database.db import get_db
 from app.security.auth import get_current_user
-from app.services.youtube_service import search_youtube
-from app.services.github_service import search_github_repositories
+from app.services.youtube_service import search_youtube, ExternalServiceError as YouTubeServiceError
+from app.services.github_service import search_github_repositories, ExternalServiceError as GitHubServiceError
 from app.models.models import Playlist, User, PlaylistRepo, PlaylistVideo, Category
 from pydantic import BaseModel
 from typing import List, Optional
@@ -96,14 +96,24 @@ class LibrarySearchResponse(BaseModel):
 @router.get("/search/videos")
 def search_videos(query: str):
     """endpoint to request videos from the youtube API based on a search parameter."""
-    results = search_youtube(query)
-    return {"videos": results}
+    try:
+        results = search_youtube(query)
+        return {"videos": results}
+    except YouTubeServiceError as exc:
+        raise HTTPException(status_code=503, detail=str(exc))
+    except Exception:
+        raise HTTPException(status_code=503, detail="YouTube service unavailable.")
 
 @router.get("/search/repositories")
 def search_repositories(query: str):
     """endpoint to request repository information from the GitHub API based on a search parameter."""
-    results = search_github_repositories(query)
-    return {"repositories": results}
+    try:
+        results = search_github_repositories(query)
+        return {"repositories": results}
+    except GitHubServiceError as exc:
+        raise HTTPException(status_code=503, detail=str(exc))
+    except Exception:
+        raise HTTPException(status_code=503, detail="GitHub service unavailable.")
 
 
 @router.post("/playlists/new")
@@ -162,6 +172,23 @@ def get_playlist_detail(playlist_id: int, db: Session = Depends(get_db), current
         raise HTTPException(status_code=404, detail="Playlist not found")
         
     return playlist
+
+@router.delete("/playlists/{playlist_id}")
+def delete_playlist(playlist_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    """Delete a playlist and its saved items for the authenticated user."""
+    if not current_user:
+        raise HTTPException(status_code=401, detail="Authentication required")
+
+    playlist = db.query(Playlist).filter(Playlist.id == playlist_id, Playlist.user_id == current_user.id).first()
+    if not playlist:
+        raise HTTPException(status_code=404, detail="Playlist not found")
+
+    db.query(PlaylistVideo).filter(PlaylistVideo.playlist_id == playlist_id).delete(synchronize_session=False)
+    db.query(PlaylistRepo).filter(PlaylistRepo.playlist_id == playlist_id).delete(synchronize_session=False)
+    db.delete(playlist)
+    db.commit()
+
+    return {"message": "Playlist deleted"}
 
 @router.get("/library/search", response_model=LibrarySearchResponse)
 def search_library(query: str, category: Optional[str] = None, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
@@ -266,6 +293,25 @@ def add_video_to_playlist(playlist_id: int, video: Videomodel, db: Session = Dep
     db.refresh(playlist_video)
     return playlist_video
 
+@router.delete("/playlists/{playlist_id}/videos/{video_id}")
+def delete_playlist_video(playlist_id: int, video_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    """Remove a saved video from a playlist owned by the authenticated user."""
+    if not current_user:
+        raise HTTPException(status_code=401, detail="Authentication required")
+
+    playlist = db.query(Playlist).filter(Playlist.id == playlist_id, Playlist.user_id == current_user.id).first()
+    if not playlist:
+        raise HTTPException(status_code=404, detail="Playlist not found")
+
+    video = db.query(PlaylistVideo).filter(PlaylistVideo.id == video_id, PlaylistVideo.playlist_id == playlist_id).first()
+    if not video:
+        raise HTTPException(status_code=404, detail="Video not found")
+
+    db.delete(video)
+    db.commit()
+
+    return {"message": "Video removed"}
+
 
 @router.post("/playlists/{playlist_id}/repositories")
 def add_repo_to_playlist(playlist_id: int, repo: RepoCreate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
@@ -292,4 +338,23 @@ def add_repo_to_playlist(playlist_id: int, repo: RepoCreate, db: Session = Depen
     db.commit()
     db.refresh(playlist_repo)
     return playlist_repo
+
+@router.delete("/playlists/{playlist_id}/repositories/{repo_id}")
+def delete_playlist_repo(playlist_id: int, repo_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    """Remove a saved repository from a playlist owned by the authenticated user."""
+    if not current_user:
+        raise HTTPException(status_code=401, detail="Authentication required")
+
+    playlist = db.query(Playlist).filter(Playlist.id == playlist_id, Playlist.user_id == current_user.id).first()
+    if not playlist:
+        raise HTTPException(status_code=404, detail="Playlist not found")
+
+    repo = db.query(PlaylistRepo).filter(PlaylistRepo.id == repo_id, PlaylistRepo.playlist_id == playlist_id).first()
+    if not repo:
+        raise HTTPException(status_code=404, detail="Repository not found")
+
+    db.delete(repo)
+    db.commit()
+
+    return {"message": "Repository removed"}
 

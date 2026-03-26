@@ -26,8 +26,8 @@ class Playlist(Base):
     created_at = Column(DateTime, default=datetime.now(timezone.utc))
 
     user = relationship("User", back_populates="playlists")
-    videos = relationship("PlaylistVideo", back_populates="playlist")
-    repos = relationship("PlaylistRepo", back_populates="playlist")
+    videos = relationship("PlaylistVideo", back_populates="playlist", cascade="all, delete-orphan")
+    repos = relationship("PlaylistRepo", back_populates="playlist", cascade="all, delete-orphan")
 
     __table_args__ = (
         UniqueConstraint("user_id", "name", name="unique_user_playlist"),

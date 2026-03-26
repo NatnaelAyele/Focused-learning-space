@@ -1,6 +1,11 @@
 import requests
 import os
 from dotenv import load_dotenv
+
+
+class ExternalServiceError(Exception):
+    """Raised when an external API request fails or returns invalid data."""
+    pass
 load_dotenv()
 
 github_token = os.getenv("Github_Token")
@@ -20,8 +25,12 @@ def search_github_repositories(query):
         "per_page": 100
     }
     
-    response = requests.get(github_search_url, params=parameters, headers=headers)
-    data = response.json()
+    try:
+        response = requests.get(github_search_url, params=parameters, headers=headers, timeout=10)
+        response.raise_for_status()
+        data = response.json()
+    except (requests.RequestException, ValueError) as exc:
+        raise ExternalServiceError("GitHub search request failed.") from exc
 
     repositories = []
 
