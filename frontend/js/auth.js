@@ -151,15 +151,17 @@ function updateNavbarUI() {
     // if user is authenticated, show playlists and logout options; otherwise, show login/register buttons.
     if (token) {
         navButtons.innerHTML = `
-            <button onclick=\"switchAppView('playlists')\">Playlists</button>
-            <span style=\"margin-right: 15px; margin-left: 15px; color: #cbd5e1;\">Hi, ${username}</span>
-            <button onclick=\"handleLogout()\">Logout</button>
+            <button onclick="switchAppView('playlists')">Playlists</button>
+            <button onclick="showAnalyticsSection(event)" style="margin-left: 10px;">Analytics</button>
+            <span style="margin-right: 15px; margin-left: 15px; color: #cbd5e1;">Hi, ${username}</span>
+            <button onclick="handleLogout()">Logout</button>
         `;
     } else {
         navButtons.innerHTML = `
-            <button onclick=\"switchAppView('playlists')\">Playlists</button>
-            <button onclick=\"openAuth('login')\" style=\"margin-left: 15px;\">Login</button>
-            <button class=\"primary\" onclick=\"openAuth('register')\">Get Started</button>
+            <button onclick="switchAppView('playlists')">Playlists</button>
+            <button onclick="showAnalyticsSection(event)" style="margin-left: 10px;">Analytics</button>
+            <button onclick="openAuth('login')" style="margin-left: 15px;">Login</button>
+            <button class="primary" onclick="openAuth('register')">Get Started</button>
         `;
     }
 }

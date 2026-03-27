@@ -5,11 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Focus Learning</title>
     <link rel="stylesheet" href="styles/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
 
 <nav class="navbar">
-        <h2 class="logo" onclick="switchAppView('home')">Eestiazo</h2>
+        <h2 class="logo" onclick="switchAppView('home')">Estiazo</h2>
         <div id="nav-actions">
             </div>
     </nav>
@@ -53,6 +54,7 @@
             <button class="btn-create-playlist" onclick="openCreatePlaylist()">
                 <span class="plus-icon">+</span> Create Playlist
             </button>
+            <a class="analytics-link" href="#analytics-view" onclick="showAnalyticsSection(event)">View video analytics →</a>
         </div>
 
             <div class="playlists-controls">
@@ -82,6 +84,29 @@
             <div id="playlists-grid" class="playlists-grid">
                 </div>
 
+    </div>
+
+    <div id="analytics-view" class="hidden">
+        <div class="analytics-header-bar">
+            <button class="btn-back" onclick="switchAppView('playlists')">&larr; Back to playlists</button>
+            <h2>Analytics</h2>
+        </div>
+
+        <section id="analytics-section" class="analytics-section">
+            <div class="analytics-header">
+                <div>
+                    <p class="eyebrow">Insights</p>
+                    <h3>Video saves by category</h3>
+                </div>
+                <span id="analytics-total" class="analytics-total">0 videos</span>
+            </div>
+            <div id="analytics-loading" class="analytics-loading hidden">Loading analytics...</div>
+            <div id="analytics-empty" class="analytics-empty hidden">No saved videos yet. Add some to see the breakdown.</div>
+            <div class="analytics-chart-wrapper">
+                <canvas id="category-pie-chart" width="320" height="320"></canvas>
+                <div id="analytics-legend" class="analytics-legend"></div>
+            </div>
+        </section>
     </div>
 
     <div id="playlist-detail-view" class="hidden">
@@ -168,6 +193,7 @@
 <script src="js/search.js"></script>
 <script src="js/library-search.js"></script>
 <script src="js/playlists.js"></script>
+<script src="js/analytics.js"></script>
 <script src="js/auth.js"></script>
 <script src="js/init.js"></script>
 </body>

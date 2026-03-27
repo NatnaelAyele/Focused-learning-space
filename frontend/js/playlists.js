@@ -1,25 +1,32 @@
 function switchAppView(view) {
-    // Handle navigation between home, playlist and playlist detail views.
+    // Handle navigation between home, playlist, analytics, and playlist detail views.
     const homeView = document.getElementById("home-view");
     const playlistsView = document.getElementById("playlists-view");
     const detailView = document.getElementById("playlist-detail-view");
+    const analyticsView = document.getElementById("analytics-view");
 
     const token = localStorage.getItem("access_token");
+
+    // Guarded views should not blank the current view on auth failure; only switch after passing checks.
+    const requiresAuth = view === "playlists" || view === "analytics" || view === "playlist-detail";
+    if (requiresAuth && (!token || token === "null" || token === "undefined")) {
+        showToast("You must be logged in to view this section.", "error");
+        openAuth("login");
+        return;
+    }
 
     // Hide all views first; selectively reveal target view below.
     homeView.classList.add("hidden");
     playlistsView.classList.add("hidden");
     detailView.classList.add("hidden");
+    if (analyticsView) analyticsView.classList.add("hidden");
 
-    // open playlist view only if a user is authenticated. Otherwise, prompt login.
     if (view === "playlists") {
-        if (!token) {
-            showToast("You must be logged in to view playlists.", "error");
-            openAuth("login");
-            return;
-        }
         playlistsView.classList.remove("hidden");
         fetchPlaylists();
+    } else if (view === "analytics") {
+        if (analyticsView) analyticsView.classList.remove("hidden");
+        loadVideoCategoryAnalytics();
     } else if (view === "playlist-detail") {
         detailView.classList.remove("hidden");
     } else {
@@ -357,6 +364,10 @@ async function confirmAddToPlaylist(playlistId, playlistName, options = {}) {
         };
     }
 
+    if (options.restoreSearchResults && typeof restoreSearchResultsView === "function") {
+        restoreSearchResultsView();
+    }
+
     try {
         // Persist selected item into target playlist.
         const response = await fetch(endpoint, {
@@ -372,10 +383,6 @@ async function confirmAddToPlaylist(playlistId, playlistName, options = {}) {
             const successMessage = options.successMessage || `Added to "${playlistName}"!`;
             showToast(successMessage, "success");
             closeAddToPlaylistModal();
-            if (options.restoreSearchResults && typeof renderCurrentPage === "function") {
-                restoreSearchResultsView();
-                renderCurrentPage();
-            }
         } else {
             const errorData = await response.json();
             showToast(errorData.detail || "Failed to add item.", "error");
@@ -383,6 +390,10 @@ async function confirmAddToPlaylist(playlistId, playlistName, options = {}) {
     } catch (error) {
         console.error("Error adding to playlist:", error);
         showToast("Network error.", "error");
+    } finally {
+        if (options.restoreSearchResults && typeof renderCurrentPage === "function") {
+            renderCurrentPage();
+        }
     }
 }
 

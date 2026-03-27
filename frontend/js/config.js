@@ -1,5 +1,5 @@
 // Base URL for all backend API requests from the frontend.
-const API_BASE_URL = "http://localhost:8000";
+const API_BASE_URL = "/api"; //
 
 // Home search state for external YouTube/GitHub search results.
 let allVideos = [];

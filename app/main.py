@@ -10,7 +10,7 @@ from fastapi.middleware.cors import CORSMiddleware
 Base.metadata.create_all(bind=engine)
 
 
-app = FastAPI()
+app = FastAPI(root_path="/api")
 
 # set up CORS middle ware to allow communication between frontend and backend.
 app.add_middleware(

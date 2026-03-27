@@ -11,6 +11,30 @@ from typing import List, Optional
 
 router = APIRouter()
 
+
+@router.get("/analytics/videos/categories")
+def get_video_category_breakdown(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    """Return a breakdown of saved videos grouped by playlist category for the authenticated user."""
+    if not current_user:
+        raise HTTPException(status_code=401, detail="Authentication required")
+
+    results = (
+        db.query(Playlist.category, func.count(PlaylistVideo.id))
+        .join(PlaylistVideo, Playlist.id == PlaylistVideo.playlist_id)
+        .filter(Playlist.user_id == current_user.id)
+        .group_by(Playlist.category)
+        .all()
+    )
+
+    breakdown = []
+    total_videos = 0
+    for category, count in results:
+        label = category if category else "Uncategorized"
+        breakdown.append({"category": label, "count": count})
+        total_videos += count
+
+    return {"total_videos": total_videos, "by_category": breakdown}
+
 class Videomodel(BaseModel):
     """Payload model used when saving a YouTube video into a playlist."""
     youtube_video_id: str
