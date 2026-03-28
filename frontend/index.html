@@ -11,8 +11,12 @@
 
 <nav class="navbar">
         <h2 class="logo" onclick="switchAppView('home')">Estiazo</h2>
-        <div id="nav-actions">
-            </div>
+        <button id="nav-toggle" class="nav-toggle" aria-label="Toggle navigation" aria-expanded="false" aria-controls="nav-actions">
+            <span class="nav-toggle-bar"></span>
+            <span class="nav-toggle-bar"></span>
+            <span class="nav-toggle-bar"></span>
+        </button>
+        <div id="nav-actions"></div>
     </nav>
 
     <div id="home-view">
@@ -24,6 +28,16 @@
                 <input id="search-input" placeholder="Search a topic...">
                 <button onclick="handleSearch()">Search</button>
             </div>
+
+            <div class="quick-topics" id="quick-topics">
+                <div class="quick-topics-header">
+                    <p>Quick start</p>
+                    <button id="quick-topics-toggle" class="quick-topics-toggle" aria-expanded="true" aria-controls="quick-topics-list" title="Hide quick topics">
+                        ^
+                    </button>
+                </div>
+                <div id="quick-topics-list" class="quick-topics-list"></div>
+            </div>
         </section>
 
         <section id="results-section" class="hidden">
@@ -31,14 +45,14 @@
                 <button id="tab-videos" class="active" onclick="switchTab('videos')">Videos</button>
                 <button id="tab-repos" onclick="switchTab('repos')">Repositories</button>
             </div>
-            
+
             <div class="controls-wrapper">
                 <select id="sort-select" class="hidden" onchange="applySort()"></select>
             </div>
 
             <div id="videos-container"></div>
             <div id="repos-container" class="hidden"></div>
-            
+
             <div id="pagination-controls" class="hidden">
                 <button id="prev-btn" onclick="changePage(-1)">Previous</button>
                 <span id="page-info">Page 1</span>
@@ -48,7 +62,7 @@
     </div>
 
     <div id="playlists-view" class="hidden">
-        
+
         <div class="playlists-header">
             <h2>My Playlists</h2>
             <button class="btn-create-playlist" onclick="openCreatePlaylist()">
@@ -150,7 +164,7 @@
     <div id="auth-modal" class="modal hidden">
         <div class="modal-content">
             <span class="close" onclick="closeAuth()">&times;</span>
-            
+
             <p id="auth-error"></p>
             <div id="login-form">
                 <h3>Login</h3>
@@ -180,7 +194,7 @@
 
     <div id="video-modal" class="modal">
         <span class="close-video" onclick="closeVideo()">&times;</span>
-        
+
         <div class="video-container">
             <iframe id="video-player" src="" frameborder="0" allowfullscreen></iframe>
         </div>

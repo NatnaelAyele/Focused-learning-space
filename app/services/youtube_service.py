@@ -1,5 +1,6 @@
-import requests
 import os
+import re
+import requests
 from dotenv import load_dotenv
 
 
@@ -53,6 +54,7 @@ def search_youtube(query):
             video_ids.append(vid)
 
     view_counts = {}
+    durations = {}
     stats_url = "https://www.googleapis.com/youtube/v3/videos"
     
     # Request statistics in batches as the youtube API only allows up to 50 IDs per call.
@@ -73,12 +75,41 @@ def search_youtube(query):
         for v in stats_data.get("items", []):
             view_counts[v["id"]] = int(v["statistics"].get("viewCount", 0))
 
+    def parse_iso8601_duration(duration):
+        # Convert ISO 8601 durations like PT2M30S into total seconds.
+        match = re.match(r"^PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?$", duration or "")
+        if not match:
+            return 0
+        hours = int(match.group(1) or 0)
+        minutes = int(match.group(2) or 0)
+        seconds = int(match.group(3) or 0)
+        return hours * 3600 + minutes * 60 + seconds
+
+    # Request content details to filter out short videos (< 2 minutes).
+    for i in range(0, len(video_ids), 50):
+        chunk = video_ids[i:i + 50]
+        details_params = {
+            "part": "contentDetails",
+            "id": ",".join(chunk),
+            "key": youtube_api_key
+        }
+        try:
+            details_response = requests.get(stats_url, params=details_params, timeout=10)
+            details_response.raise_for_status()
+            details_data = details_response.json()
+        except (requests.RequestException, ValueError) as exc:
+            raise ExternalServiceError("YouTube content details request failed.") from exc
+
+        for v in details_data.get("items", []):
+            duration = v.get("contentDetails", {}).get("duration", "")
+            durations[v["id"]] = parse_iso8601_duration(duration)
+
     # Normalize API fields into frontend-friendly response structure.
     for item in items:
         snippet = item.get("snippet", {})
         video_id = item.get("id", {}).get("videoId", "")
         
-        if video_id:
+        if video_id and durations.get(video_id, 0) >= 120:
             video = {
                 "title": snippet.get("title", "No Title"),
                 "channel": snippet.get("channelTitle", "Unknown Channel"),

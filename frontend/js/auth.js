@@ -146,7 +146,11 @@ function updateNavbarUI() {
     // Render navbar based on authentication state.
     const token = localStorage.getItem("access_token");
     const username = localStorage.getItem("username");
-    const navButtons = document.querySelector(".navbar div");
+    const navButtons = document.getElementById("nav-actions");
+
+    if (!navButtons) {
+        return;
+    }
 
     // if user is authenticated, show playlists and logout options; otherwise, show login/register buttons.
     if (token) {
@@ -164,6 +168,52 @@ function updateNavbarUI() {
             <button class="primary" onclick="openAuth('register')">Get Started</button>
         `;
     }
+
+    navButtons.querySelectorAll("button").forEach((button) => {
+        button.addEventListener("click", () => {
+            if (window.innerWidth <= 768) {
+                setNavExpanded(false);
+            }
+        });
+    });
+
+    setNavExpanded(false);
+}
+
+function setNavExpanded(isOpen) {
+    const navButtons = document.getElementById("nav-actions");
+    const navToggle = document.getElementById("nav-toggle");
+
+    if (!navButtons || !navToggle) {
+        return;
+    }
+
+    navButtons.classList.toggle("open", isOpen);
+    navToggle.classList.toggle("is-open", isOpen);
+    navToggle.setAttribute("aria-expanded", isOpen ? "true" : "false");
+}
+
+function toggleNavMenu() {
+    const navButtons = document.getElementById("nav-actions");
+    if (!navButtons) {
+        return;
+    }
+
+    setNavExpanded(!navButtons.classList.contains("open"));
+}
+
+function setupNavToggle() {
+    const navToggle = document.getElementById("nav-toggle");
+    if (!navToggle) {
+        return;
+    }
+
+    navToggle.addEventListener("click", toggleNavMenu);
+    window.addEventListener("resize", () => {
+        if (window.innerWidth > 768) {
+            setNavExpanded(false);
+        }
+    });
 }
 
 function handleLogout() {

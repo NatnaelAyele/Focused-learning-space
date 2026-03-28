@@ -1,6 +1,8 @@
 document.addEventListener("DOMContentLoaded", () => {
     // Initialize navbar auth state once DOM is ready.
     updateNavbarUI();
+    setupNavToggle();
+    setupQuickTopics();
     const playlistSearch = document.getElementById("playlist-search");
     const categoryFilter = document.getElementById("playlist-category-filter");
     const serchApi = document.getElementById("search-input");

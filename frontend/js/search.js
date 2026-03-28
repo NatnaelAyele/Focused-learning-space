@@ -4,6 +4,7 @@ async function handleSearch() {
     // Read the main search query from the input field.
     const query = document.getElementById("search-input").value;
     if (query === "") return;
+    hideQuickTopics();
     // Reset state before issuing a new search request.
     allVideos = [];
     allRepos = [];
@@ -56,6 +57,66 @@ async function handleSearch() {
         document.getElementById("videos-container").innerHTML = "<p>Failed to load results.</p>";
         document.getElementById("repos-container").innerHTML = "<p>Failed to load results.</p>";
     }
+}
+
+const QUICK_TOPICS = [
+    "JavaScript",
+    "introduction to Python",
+    "React js",
+    "TypeScript",
+    "Node.js",
+    "CSS",
+    "HTML",
+    "Git",
+    "Docker",
+    "SQL",
+    "System Design",
+    "Data Structures"
+];
+
+function setupQuickTopics() {
+    const list = document.getElementById("quick-topics-list");
+    const toggle = document.getElementById("quick-topics-toggle");
+    const wrapper = document.getElementById("quick-topics");
+
+    if (!list || !toggle || !wrapper) {
+        return;
+    }
+
+    list.innerHTML = "";
+    QUICK_TOPICS.forEach((topic) => {
+        const button = document.createElement("button");
+        button.className = "quick-topics-card";
+        button.type = "button";
+        button.innerText = topic;
+        button.addEventListener("click", () => {
+            const input = document.getElementById("search-input");
+            if (input) {
+                input.value = topic;
+            }
+            handleSearch();
+        });
+        list.appendChild(button);
+    });
+
+    toggle.addEventListener("click", () => {
+        const isCollapsed = wrapper.classList.toggle("collapsed");
+        toggle.setAttribute("aria-expanded", isCollapsed ? "false" : "true");
+        toggle.title = isCollapsed ? "Show quick topics" : "Hide quick topics";
+    });
+}
+
+function hideQuickTopics() {
+    const wrapper = document.getElementById("quick-topics");
+    const toggle = document.getElementById("quick-topics-toggle");
+
+    if (!wrapper || !toggle) {
+        return;
+    }
+
+    wrapper.classList.add("collapsed");
+    toggle.setAttribute("aria-expanded", "false");
+    toggle.title = "Show quick topics";
 }
 
 function renderCurrentPage() {
