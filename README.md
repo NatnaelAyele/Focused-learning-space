@@ -1,6 +1,7 @@
-# Focus Time
+# Focused-learning-space
 
 A focused learning companion that lets you search YouTube videos and GitHub repositories, then save items into playlists with analytics.
+The app name "estiazo" is a Greek word meaning "to focus."
 
 ## Features
 - Search YouTube videos and GitHub repositories by topic.
@@ -124,8 +125,8 @@ This application can be deployed using a multi-server architecture with two appl
 
      [Service]
     User=<app_user>
-    WorkingDirectory=/path/to/Focus-time
-    Environment="PATH=/path/to/Focus-time/venv/bin"
+    WorkingDirectory=/path/to/Focused-learning-space
+    Environment="PATH=/path/to/Focused-learning-space/venv/bin"
     ExecStart=/path/to/Focus-time/venv/bin/gunicorn -w 4 -k uvicorn.workers.UvicornWorker app.main:app --bind 127.0.0.1:8000
      Restart=always
 
@@ -142,7 +143,7 @@ server {
     listen 80;
     server_name <your_domain>;
 
-    root /path/to/Focus-time/frontend;
+    root /path/to/Focused-learning-space/frontend;
     index index.html;
 
     location / {
