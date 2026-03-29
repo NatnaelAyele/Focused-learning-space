@@ -1,6 +1,7 @@
 # Focus Time
 
 A focused learning companion that lets you search YouTube videos and GitHub repositories, then save items into playlists with analytics.
+The app name "estiazo" is a Greek word meaning "to focus."
 
 ## Features
 - Search YouTube videos and GitHub repositories by topic.
