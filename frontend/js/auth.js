@@ -39,6 +39,7 @@ function closeAuth() {
 }
 
 function setAuthLoadingState(isLoading, mode) {
+    // Toggle button states based on current auth mode.
     const loginButton = document.getElementById("login-submit");
     const registerButton = document.getElementById("register-submit");
 
@@ -181,6 +182,7 @@ function updateNavbarUI() {
 }
 
 function setNavExpanded(isOpen) {
+    // Update nav container and toggle aria state.
     const navButtons = document.getElementById("nav-actions");
     const navToggle = document.getElementById("nav-toggle");
 
@@ -194,6 +196,7 @@ function setNavExpanded(isOpen) {
 }
 
 function toggleNavMenu() {
+    // Flip the current nav menu state.
     const navButtons = document.getElementById("nav-actions");
     if (!navButtons) {
         return;
@@ -203,6 +206,7 @@ function toggleNavMenu() {
 }
 
 function setupNavToggle() {
+    // Register click + resize handlers for mobile navigation.
     const navToggle = document.getElementById("nav-toggle");
     if (!navToggle) {
         return;

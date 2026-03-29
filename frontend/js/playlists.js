@@ -54,6 +54,7 @@ function closeCreatePlaylist() {
 }
 
 function setCreatePlaylistLoadingState(isLoading) {
+    // Toggle create button state during API work.
     const submitButton = document.getElementById("create-playlist-submit");
     if (!submitButton) return;
 
@@ -62,6 +63,7 @@ function setCreatePlaylistLoadingState(isLoading) {
 }
 
 function resetCreatePlaylistForm() {
+    // Clear inputs and reset category picker layout.
     const nameInput = document.getElementById("new-playlist-name");
     const categoryInput = document.getElementById("new-playlist-category");
     const categorySelect = document.getElementById("new-playlist-category-select");
@@ -76,10 +78,12 @@ function resetCreatePlaylistForm() {
 }
 
 function getUniquePlaylistCategories() {
+    // Extract non-empty category strings from playlists.
     return [...new Set(myPlaylists.map((playlist) => (playlist.category || "").trim()).filter(Boolean))];
 }
 
 function setupCreatePlaylistCategoryInput() {
+    // Decide whether to show select or free-text category input.
     const selectWrapper = document.getElementById("new-playlist-category-select-wrapper");
     const inputWrapper = document.getElementById("new-playlist-category-input-wrapper");
     const categorySelect = document.getElementById("new-playlist-category-select");
@@ -90,6 +94,7 @@ function setupCreatePlaylistCategoryInput() {
     const categories = getUniquePlaylistCategories();
 
     if (categories.length === 0) {
+        // No saved categories yet; default to free-text input.
         selectWrapper.classList.add("hidden");
         inputWrapper.classList.remove("hidden");
         categorySelect.innerHTML = "";
@@ -107,6 +112,7 @@ function setupCreatePlaylistCategoryInput() {
     categorySelect.innerHTML += '<option value="__new__">+ Add new category</option>';
 
     categorySelect.onchange = () => {
+        // Switch to text input when the user chooses to add a new category.
         if (categorySelect.value === "__new__") {
             inputWrapper.classList.remove("hidden");
             categoryInput.value = "";

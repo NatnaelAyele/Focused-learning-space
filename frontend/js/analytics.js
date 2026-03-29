@@ -1,6 +1,7 @@
 let categoryPieChart = null;
 
 function showAnalyticsSection(event) {
+    // Redirect to login if needed before showing analytics view.
     if (event) event.preventDefault();
     const token = localStorage.getItem("access_token");
     if (!token) {
@@ -13,6 +14,7 @@ function showAnalyticsSection(event) {
 }
 
 function setAnalyticsLoading(isLoading) {
+    // Toggle loading and empty states for the analytics panel.
     const loadingEl = document.getElementById("analytics-loading");
     const chartWrapper = document.querySelector(".analytics-chart-wrapper");
     const emptyEl = document.getElementById("analytics-empty");
@@ -23,6 +25,7 @@ function setAnalyticsLoading(isLoading) {
 }
 
 async function loadVideoCategoryAnalytics() {
+    // Fetch category breakdown data and render the chart.
     const token = localStorage.getItem("access_token");
     if (!token) return;
 
@@ -61,6 +64,7 @@ async function loadVideoCategoryAnalytics() {
 }
 
 function updateAnalyticsTotal(total) {
+    // Update the total counter label above the chart.
     const totalEl = document.getElementById("analytics-total");
     if (totalEl) {
         totalEl.textContent = `${total} ${total === 1 ? "video" : "videos"}`;
@@ -68,6 +72,7 @@ function updateAnalyticsTotal(total) {
 }
 
 function showEmptyAnalytics() {
+    // Show empty-state and hide chart area.
     const emptyEl = document.getElementById("analytics-empty");
     const chartWrapper = document.querySelector(".analytics-chart-wrapper");
     if (emptyEl) emptyEl.classList.remove("hidden");
@@ -75,6 +80,7 @@ function showEmptyAnalytics() {
 }
 
 function destroyCategoryChart() {
+    // Destroy previous chart instance and clear legend.
     if (categoryPieChart) {
         categoryPieChart.destroy();
         categoryPieChart = null;
@@ -84,6 +90,7 @@ function destroyCategoryChart() {
 }
 
 function renderCategoryPieChart(breakdown) {
+    // Build and render the category pie chart and legend.
     const ctx = document.getElementById("category-pie-chart");
     const legend = document.getElementById("analytics-legend");
     if (!ctx || !legend || typeof Chart === "undefined") return;

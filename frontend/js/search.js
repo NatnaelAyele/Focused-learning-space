@@ -75,6 +75,8 @@ const QUICK_TOPICS = [
 ];
 
 function setupQuickTopics() {
+    // List predefined quick topic buttons and toggle control for showing/hiding the quick topics section.
+    
     const list = document.getElementById("quick-topics-list");
     const toggle = document.getElementById("quick-topics-toggle");
     const wrapper = document.getElementById("quick-topics");
@@ -107,6 +109,7 @@ function setupQuickTopics() {
 }
 
 function hideQuickTopics() {
+    // Collapse the quick topics section after a manual search.
     const wrapper = document.getElementById("quick-topics");
     const toggle = document.getElementById("quick-topics-toggle");
 

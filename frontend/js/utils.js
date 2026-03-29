@@ -43,14 +43,17 @@ function setClearSearchVisible(isVisible) {
 }
 
 function isOffline() {
+    // Guard against non-browser contexts and use navigator online flag.
     return typeof navigator !== "undefined" && navigator && navigator.onLine === false;
 }
 
 async function fetchJson(url, options = {}, config = {}) {
+    // Support simple timeout/retry config on top of fetch.
     const timeoutMs = config.timeoutMs || 10000;
     const retries = config.retries || 0;
     const controller = new AbortController();
     const attemptFetch = async () => {
+        // Abort the request if it exceeds the timeout.
         const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
         try {
             const response = await fetch(url, { ...options, signal: controller.signal });
@@ -58,6 +61,7 @@ async function fetchJson(url, options = {}, config = {}) {
 
             let data = null;
             try {
+                // Attempt to parse JSON, but allow empty/invalid bodies.
                 data = await response.json();
             } catch (error) {
                 data = null;
@@ -86,6 +90,7 @@ async function fetchJson(url, options = {}, config = {}) {
         result = await attemptFetch();
     }
 
+    // Override generic error when the browser reports offline state.
     if (!result.ok && isOffline()) {
         result.error = "You appear to be offline.";
     }
