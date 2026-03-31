@@ -3,7 +3,7 @@
 A focused learning companion that lets you search YouTube videos and GitHub repositories, then save items into playlists with analytics.
 The app name "estiazo" is a Greek word meaning "to focus."
 
-## link to live app: natnael.tech
+## link to live app: https://natnael.tech/
 
 ## Features
 - Search YouTube videos and GitHub repositories by topic.
