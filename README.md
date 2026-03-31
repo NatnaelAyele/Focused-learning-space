@@ -34,6 +34,25 @@ Notes:
 - Github_Token is optional but increases GitHub API rate limits.
 - Secret_Key should be a long, random string for JWT signing.
 
+## Local defaults vs deployment:
+- Local testing uses SQLite in [app/database/db.py](app/database/db.py) with:
+
+  ```python
+  DATABASE_URL = "sqlite:///./focus_learn.db"
+  ```
+
+- The frontend local default in [frontend/js/config.js](frontend/js/config.js) is:
+
+  ```javascript
+  const API_BASE_URL = "http://localhost:8000";
+  ```
+
+- When deploying, switch the backend database to PostgreSQL and set the frontend API base to a relative path so the reverse proxy can route it, for example:
+
+  ```javascript
+  const API_BASE_URL = "api/";
+  ```
+
 ## Install Dependencies
 From the project root:
 
@@ -66,10 +85,10 @@ Then open:
 
 Option 2: Open frontend/index.html directly in a browser.
 
-Important: The frontend uses API_BASE_URL = "/api". If your frontend is not served from the same origin as the backend, update frontend/js/config.js to point to the full backend URL, for example:
+Important: The frontend local default uses `API_BASE_URL = "http://localhost:8000"`. If your frontend is not served from the same origin as the backend, update frontend/js/config.js to point to the full backend URL, for example:
 
 ```
-const API_BASE_URL = "http://127.0.0.1:8000/api";
+const API_BASE_URL = "http://127.0.0.1:8000";
 ```
 
 ## Deployment Notes
@@ -161,10 +180,11 @@ server {
 Key points:
 - Static frontend files are served directly by Nginx.
 - Requests to /api/ are proxied to the local FastAPI backend.
+- `api/` assumes the frontend is served from the same domain and from the site root.
 - The frontend uses:
 
   ```javascript
-  const API_BASE_URL = "/api";
+  const API_BASE_URL = "api/";
   ```
 
 - FastAPI uses:
