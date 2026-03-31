@@ -4,7 +4,7 @@ A focused learning companion that lets you search YouTube videos and GitHub repo
 The app name "estiazo" is a Greek word meaning "to focus."
 
 ## Link to live app: https://natnael.tech/
-## Link to demo video: https://youtu.be/3bvrpCaBUjM
+## Link to demo video: https://youtu.be/TEzVkBQlZx8
 
 ## Features
 - Search YouTube videos and GitHub repositories by topic.
