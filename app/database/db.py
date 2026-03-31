@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 
 load_dotenv()  # Load environment variables from .env file
 
-DATABASE_URL = os.getenv("DATABASE_URL")
+DATABASE_URL = "sqlite:///./focus_learn.db"  # Using SQLite for simplicity; can be changed to other databases as needed
 engine = create_engine(DATABASE_URL)
 sessionlocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
